@@ -29,11 +29,12 @@
         <p class="font-semibold mb-2">Ajouter une UE dans la session</p>
         <div class="flex items-center space-x-2">
           <button class="px-4 py-2 border">Ajouter</button>
+          
           <select v-model="selectedUeId" class="border p-2 rounded">
             <option disabled value="">Choisissez d'une ue</option>
             <option v-for="ue in availableUes" :key="ue.ue" :value="ue.ue">
-  {{ ue.ue }}
-</option>
+         {{ ue.ue }}
+      </option>
 
 <tr v-for="ue in sessionUes" :key="ue.ue">
   <td class="p-2 text-blue-600">{{ ue.ue }}</td>
