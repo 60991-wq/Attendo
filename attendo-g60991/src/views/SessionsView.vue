@@ -1,52 +1,82 @@
 <template>
   <div class="p-6 space-y-8">
-    <h1 class="text-2xl font-bold">Créer une session</h1>
+    <Breadcrumb :items="[
+      { label: 'Accueil', link: '/' },
+      { label: 'sessions', link: '/sessions' },
+      { label: 'session' }
+    ]" />
 
-    <form @submit.prevent="handleCreate" class="space-y-4 max-w-md">
-      <input v-model="nom" type="text" placeholder="Nom de la session" class="w-full p-2 border rounded" required />
-      <input v-model="annee" type="number" placeholder="Année" class="w-full p-2 border rounded" required />
-      <input v-model="dateDebut" type="date" class="w-full p-2 border rounded" required />
-      <input v-model="dateFin" type="date" class="w-full p-2 border rounded" required />
-      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">➕ Ajouter</button>
+    <h1 class="text-2xl font-bold">Sessions</h1>
+
+    <!-- 🗂 Tableau des sessions -->
+    <table class="w-full border-collapse">
+      <thead>
+        <tr class="bg-gray-900 text-white">
+          <th class="text-left p-2">SESSIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="session in sessions"
+          :key="session.id"
+          class="border-b hover:bg-gray-50"
+        >
+          <td class="p-2">
+            <router-link :to="`/sessions/${session.id}`" class="text-blue-600 hover:underline">
+              {{ session.label }}
+            </router-link>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ➕ Formulaire d’ajout -->
+    <form @submit.prevent="handleCreate" class="flex items-center space-x-2 mt-4">
+      <div class="flex items-center border rounded bg-gray-100 px-2 py-1 w-full max-w-sm">
+        <span class="text-purple-600">👥</span>
+        <input
+          v-model="label"
+          type="text"
+          placeholder="Nouvelle session"
+          class="bg-transparent ml-2 w-full outline-none"
+          required
+        />
+      </div>
+      <button
+        type="submit"
+        class="bg-white border px-4 py-2 rounded hover:bg-gray-100 text-sm"
+      >
+        Ajouter
+      </button>
     </form>
-
-    <div v-if="sessions.length" class="mt-8">
-      <h2 class="text-xl font-semibold">Sessions existantes</h2>
-      <ul class="list-disc pl-6">
-        <li v-for="s in sessions" :key="s.id">
-          {{ s.label }} – {{ s.annee }} (du {{ s.date_debut }} au {{ s.date_fin }})
-        </li>
-      </ul>
-    </div>
   </div>
 </template>
 
 <script>
 import { fetchSessions, createSession } from '@/services/listSessionsService'
+import Breadcrumb from '@/components/Breadcrumb.vue'
 
 export default {
+  components: {
+    Breadcrumb
+  },
   data() {
     return {
       sessions: [],
-      nom: '',
-      annee: '',
-      dateDebut: '',
-      dateFin: ''
+      label: ''
     }
   },
   async created() {
-    this.sessions = await fetchSessions()
+    await this.loadSessions()
   },
   methods: {
-    async handleCreate() {
-      await createSession({
-        label: this.nom,
-        annee: Number(this.annee),
-        date_debut: this.dateDebut,
-        date_fin: this.dateFin
-      })
-      this.nom = this.annee = this.dateDebut = this.dateFin = ''
+    async loadSessions() {
       this.sessions = await fetchSessions()
+    },
+    async handleCreate() {
+      await createSession({ label: this.label })
+      this.label = ''
+      await this.loadSessions()
     }
   }
 }
