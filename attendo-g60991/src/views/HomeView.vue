@@ -9,9 +9,9 @@
 import { user } from '@/stores/user'
 
 export default {
-  setup() {
-    return {
-      user
+  computed: {
+    user() {
+      return user
     }
   }
 }
