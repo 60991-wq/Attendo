@@ -1,41 +1,47 @@
 import { supabase } from '@/supabase'
 
-// 🔹 Récupérer les UE associées à une session
+// 🔹 UE déjà associées à la session
 export const fetchSessionUes = async (sessionId) => {
   const { data, error } = await supabase
     .from('session_compo')
-    .select('ue:ue_id ( id, code )') // jointure
-    .eq('session_id', sessionId)
+    .select('ue')
+    .eq('session', sessionId)
 
   if (error) throw error
-  return data.map(entry => entry.ue)
+  return data.map(entry => ({ ue: entry.ue }))
 }
 
-// 🔹 Récupérer toutes les UE NON liées à cette session
+// 🔹 UE disponibles (non encore liées à la session)
 export const fetchAvailableUes = async (sessionId) => {
   const { data: linked, error: err1 } = await supabase
     .from('session_compo')
-    .select('ue_id')
-    .eq('session_id', sessionId)
+    .select('ue')
+    .eq('session', sessionId)
 
   if (err1) throw err1
 
-  const linkedIds = linked.map(u => u.ue_id)
+  const linkedUes = linked.map(u => `'${u.ue}'`)
+
+  if (linkedUes.length === 0) {
+    const { data, error } = await supabase.from('ue').select('ue')
+    if (error) throw error
+    return data.map(row => ({ ue: row.ue }))
+  }
 
   const { data, error } = await supabase
     .from('ue')
-    .select('*')
-    .not('id', 'in', `(${linkedIds.join(',') || 'null'})`)
+    .select('ue')
+    .not('ue', 'in', `(${linkedUes.join(',')})`)
 
   if (error) throw error
-  return data
+  return data.map(row => ({ ue: row.ue }))
 }
 
 // 🔹 Associer une UE à une session
-export const addUeToSession = async (sessionId, ueId) => {
+export const addUeToSession = async (sessionId, ueCode) => {
   const { error } = await supabase
     .from('session_compo')
-    .insert({ session_id: sessionId, ue_id: ueId })
+    .insert({ session: sessionId, ue: ueCode })
 
   if (error) throw error
 }
