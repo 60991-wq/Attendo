@@ -14,8 +14,8 @@
       </div>
 
       <div class="flex items-center space-x-2 text-sm">
-        <span v-if="user">{{ user.email }}</span>
-        <button v-if="user" @click="signOut" class="text-red-600 underline hover:text-red-800">
+        <span v-if="userStore.user">{{ userStore.user.email }}</span>
+        <button v-if="userStore.user" @click="signOut" class="text-red-600 underline hover:text-red-800">
           Déconnexion
         </button>
         <button v-else @click="signIn" class="border px-3 py-1 rounded hover:bg-gray-200">
@@ -33,7 +33,7 @@
 
 <script>
 import { supabase } from '@/supabase'
-import store from '@/stores/user'
+import { useUserStore } from '@/stores/user'
 import { RouterLink, RouterView } from 'vue-router'
 
 export default {
@@ -41,31 +41,31 @@ export default {
     RouterLink,
     RouterView
   },
-  computed: {
-    user() {
-      return store.user
+  data() {
+    return {
+      userStore: useUserStore()
     }
   },
   created() {
     this.loadUser()
 
     supabase.auth.onAuthStateChange((_event, session) => {
-      store.user = session?.user ?? null
+      this.userStore.user = session?.user ?? null
       if (!session) this.$router.push('/')
     })
   },
   methods: {
     async loadUser() {
       const { data } = await supabase.auth.getSession()
-      store.user = data.session?.user ?? null
-      store.isLoadingUser = false
+      this.userStore.user = data.session?.user ?? null
+      this.userStore.isLoadingUser = false
     },
     async signIn() {
       await supabase.auth.signInWithOAuth({ provider: 'google' })
     },
     async signOut() {
       await supabase.auth.signOut()
-      store.user = null
+      this.userStore.user = null
       this.$router.push('/')
     }
   }
