@@ -27,24 +27,18 @@
       </div>
 
       <!-- Formulaire ajout UE -->
-      <div class="mt-4 pt-3 border-t">
-        <h2 class="text-lg mb-2">Ajouter une UE dans la session</h2>
-        <div class="flex gap-2">
-          <select v-model="selectedUeId" class="border rounded px-3 py-2 flex-grow">
-            <option disabled value="">Choisissez une UE</option>
-            <option v-for="ue in availableUes" :key="ue.ue" :value="ue.ue">
-              {{ ue.ue }}
-            </option>
-          </select>
-          <button 
-            @click="handleAddUe" 
-            class="bg-fuchsia-600 text-white px-4 py-2 rounded"
-            :disabled="!selectedUeId"
-          >
-            Ajouter l'UE
-          </button>
-        </div>
-      </div>
+      <div class="mt-4">
+  <h2 class="mb-2">Ajouter une UE dans la session</h2>
+  <div class="flex gap-2">
+    <select v-model="selectedUeId" class="border px-3 py-2 flex-grow">
+      <option disabled value="">Choisissez d'une ue</option>
+      <option v-for="ue in availableUes" :key="ue.ue" :value="ue.ue">{{ ue.ue }}</option>
+    </select>
+    <button @click="handleAddUe" class="border px-4 py-2 rounded hover:bg-gray-50">
+      Ajouter l'UE
+    </button>
+  </div>
+  </div>
     </template>
   </div>
 </template>
@@ -52,9 +46,6 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Breadcrumb from '@/components/layout/Breadcrumb.vue';
-import BaseTable from '@/components/ui/BaseTable.vue';
-import BaseSelect from '@/components/ui/BaseSelect.vue';
-import BaseButton from '@/components/ui/BaseButton.vue';
 import {
   fetchSessionUes,
   fetchAvailableUes,
