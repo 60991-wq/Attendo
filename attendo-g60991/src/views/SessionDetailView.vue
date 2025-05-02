@@ -1,94 +1,141 @@
 <template>
-    <div class="p-6 space-y-6">
-      <Breadcrumb :items="[
-        { label: 'Accueil', link: '/' },
-        { label: 'Sessions', link: '/sessions' },
-        { label: `Session ${session?.label}` }
-      ]" />
-  
-      <h1 class="text-2xl">
-        Session <span class="italic text-blue-700">{{ session?.label }}</span>
+  <div class="space-y-6">
+    <!-- Fil d'Ariane avec le composant -->
+    <Breadcrumb :items="[
+      { label: 'Accueil', link: '/' },
+      { label: 'Sessions', link: '/sessions' },
+      { label: session?.label || 'Détail de la session' }
+    ]" />
+
+    <!-- Loader -->
+    <div v-if="loading" class="flex justify-center my-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-fuchsia-600"></div>
+    </div>
+
+    <template v-else>
+      <h1 class="text-2xl font-bold">
+        Session <span class="italic text-fuchsia-600">{{ session?.label }}</span>
       </h1>
-  
+
       <!-- Liste des UE -->
-      <table class="w-full table-auto border">
-  <thead>
-    <tr class="bg-gray-900 text-white">
-      <th class="text-left px-4 py-2 text-lg">UE</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="ue in sessionUes" :key="ue.ue" class="border-b">
-      <td class="px-4 py-2 text-blue-600 text-base">{{ ue.ue }}</td>
-    </tr>
-  </tbody>
-</table>
+      <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+        <UEList 
+          :ues="sessionUes" 
+          :sessionId="sessionId" 
+          @ue-clicked="navigateToUE"
+        />
+      </div>
 
       <!-- Formulaire ajout UE -->
-      <div class="mt-4">
-        <p class="font-semibold mb-2">Ajouter une UE dans la session</p>
-        <div class="flex items-center space-x-2">
-          <button class="px-4 py-2 border">Ajouter</button>
-          
-          <select v-model="selectedUeId" class="border p-2 rounded">
-            <option disabled value="">Choisissez d'une ue</option>
-            <option v-for="ue in availableUes" :key="ue.ue" :value="ue.ue">
-         {{ ue.ue }}
-      </option>
-
-<tr v-for="ue in sessionUes" :key="ue.ue">
-  <td class="p-2 text-blue-600">{{ ue.ue }}</td>
-</tr>
-          </select>
-          <button
-            @click="handleAddUe"
-            class="border px-4 py-2 rounded hover:bg-gray-100"
-          >
-            Ajouter l'UE
-          </button>
+      <div class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
+        <div class="bg-gray-100 px-4 py-3 font-medium border-b text-sm">
+          Ajouter une UE dans la session
+        </div>
+        <div class="p-2 text-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+            <BaseSelect 
+              v-model="selectedUeId" 
+              :options="availableUEOptions"
+              placeholder="Choisissez une UE"
+              :disabled="availableUes.length === 0 || formLoading"
+              class="flex-grow text-sm py-1 px-2"
+            />
+            <BaseButton
+              @click="handleAddUe"
+              variant="light"
+              :loading="formLoading"
+              :disabled="!selectedUeId || formLoading"
+              class="text-sm px-3 py-1"
+            >
+              Ajouter l'UE
+            </BaseButton>
+          </div>
+          <p v-if="availableUes.length === 0" class="mt-2 text-xs text-gray-500">
+            Toutes les UE ont déjà été ajoutées à cette session.
+          </p>
         </div>
       </div>
-    </div>
-  </template>
+    </template>
+  </div>
+</template>
+
+<script>
+import { 
+  fetchSessionUes, 
+  fetchAvailableUes, 
+  addUeToSession,
+  fetchSessionDetails
+} from '@/services/sessionDetailsService'
+import Breadcrumb from '@/components/layout/Breadcrumb.vue'
+import UEList from '@/components/session/ueList.vue'
+import BaseSelect from '@/components/ui/BaseSelect.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+
+export default {
+  components: {
+    Breadcrumb,
+    UEList,
+    BaseSelect,
+    BaseButton
+  },
   
-  <script>
-  import Breadcrumb from '@/components/Breadcrumb.vue'
-  import { fetchSessions } from '@/services/listSessionsService'
-  import {
-    fetchSessionUes,
-    fetchAvailableUes,
-    addUeToSession
-  } from '@/services/sessionDetailsService'
+  data() {
+    return {
+      sessionId: this.$route.params.id,
+      session: null,
+      sessionUes: [],
+      availableUes: [],
+      selectedUeId: '',
+      loading: true,
+      formLoading: false
+    }
+  },
   
-  export default {
-    components: { Breadcrumb },
-    data() {
-      return {
-        session: null,
-        sessionUes: [],
-        availableUes: [],
-        selectedUeId: ''
+  computed: {
+    availableUEOptions() {
+      return this.availableUes.map(ue => ({
+        value: ue.ue,
+        label: ue.ue
+      }))
+    }
+  },
+  
+  async created() {
+    await this.loadDetails()
+  },
+  
+  methods: {
+    async loadDetails() {
+      this.loading = true
+      try {
+        this.session = await fetchSessionDetails(this.sessionId)
+        this.sessionUes = await fetchSessionUes(this.sessionId)
+        this.availableUes = await fetchAvailableUes(this.sessionId)
+      } catch (error) {
+        console.error('Erreur lors du chargement des données :', error)
+      } finally {
+        this.loading = false
       }
     },
-    async created() {
-      const sessionId = this.$route.params.id
-      const allSessions = await fetchSessions()
-      this.session = allSessions.find(s => s.id == sessionId)
-      await this.loadDetails()
-    },
-    methods: {
-      async loadDetails() {
-        this.sessionUes = await fetchSessionUes(this.session.id)
-        this.availableUes = await fetchAvailableUes(this.session.id)
-        console.log('📦 UE disponibles :', this.availableUes)
-      },
-      async handleAddUe() {
-        if (!this.selectedUeId) return
-        await addUeToSession(this.session.id, this.selectedUeId)
-        await this.loadDetails()
+    
+    async handleAddUe() {
+      if (!this.selectedUeId) return
+      this.formLoading = true
+      try {
+        await addUeToSession(this.sessionId, this.selectedUeId)
         this.selectedUeId = ''
+        await this.loadDetails()
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout de l\'UE :', error)
+        alert('Impossible d\'ajouter l\'UE')
+      } finally {
+        this.formLoading = false
       }
+    },
+    
+    navigateToUE(ue) {
+      this.$router.push(`/sessions/${this.sessionId}/ue/${ue.ue}`)
     }
   }
-  </script>
-  
+}
+</script>

@@ -2,9 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import SessionsView from '../views/SessionsView.vue'
 import AboutView from '../views/AboutView.vue'
-import SessionDetailView from '../views/SessionDetailView.vue' // ✅ ajout
+import SessionDetailView from '../views/SessionDetailView.vue'
+import UeView from '../views/UeEventsView.vue'
+import EventDetailView from '../views/EventDetailView.vue'
 
-import { supabase } from '@/supabase' // ✅ Auth
+import { supabase } from '@/supabase' // Utilisez votre chemin d'import existant
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,7 +25,19 @@ const router = createRouter({
     {
       path: '/sessions/:id',
       name: 'session-detail',
-      component: SessionDetailView, // ✅ route dynamique
+      component: SessionDetailView,
+      meta: { requiresAuth: true } // 🔒
+    },
+    {
+      path: '/sessions/:sessionId/ue/:ueId',
+      name: 'ue-detail',
+      component: UeView,
+      meta: { requiresAuth: true } // 🔒
+    },
+    {
+      path: '/sessions/:sessionId/ue/:ueId/event/:eventId',
+      name: 'event-detail',
+      component: EventDetailView,
       meta: { requiresAuth: true } // 🔒
     },
     {
