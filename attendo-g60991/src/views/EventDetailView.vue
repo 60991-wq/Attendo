@@ -20,25 +20,6 @@
     <div v-else-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
       {{ error }}
     </div>
-
-    <!-- Détails de l'épreuve -->
-    <div v-else class="bg-white shadow-sm rounded-lg p-4 max-w-md">
-      <div>
-        <h2 class="text-lg font-medium">{{ event.label }}</h2>
-        <p class="mt-2">
-          <span 
-            :class="event.completed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'" 
-            class="px-2 py-1 rounded-full text-xs font-medium"
-          >
-            {{ event.completed ? 'Complété' : 'En cours' }}
-          </span>
-        </p>
-      </div>
-
-      <div class="mt-6 pt-4 border-t">
-        <BaseButton @click="goBack">Retour aux épreuves</BaseButton>
-      </div>
-    </div>
   </div>
 </template>
 

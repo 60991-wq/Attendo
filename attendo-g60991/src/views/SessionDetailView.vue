@@ -134,7 +134,6 @@ export default {
     },
     
     navigateToUE(ueCode) {
-      console.log('UE cliquée (code) :', ueCode)
       this.$router.push(`/sessions/${this.sessionId}/ue/${ueCode}`)
     }
   }
