@@ -39,7 +39,7 @@
 <script>
 import { RouterLink, RouterView } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { supabase } from '@/services/SupabaseClient' // Utilise le service supabaseClient
+import { supabase } from '@/services/SupabaseClient'
 
 export default {
   components: {
