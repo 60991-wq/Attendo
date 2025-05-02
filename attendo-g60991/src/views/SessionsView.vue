@@ -1,11 +1,11 @@
 <template>
-  <div class="bg-gray-50 min-h-screen p-4">
-    <!-- Navigation fil d'Ariane comme dans l'image -->
-    <div class="flex items-center text-sm mb-4">
-      <router-link to="/" class="text-blue-500 hover:underline">Accueil</router-link>
-      <span class="mx-2">&gt;</span>
-      <span class="text-blue-500">sessions</span>
-    </div>
+  <div class="p-6 space-y-6">
+    <Breadcrumb :items="[
+      { label: 'Accueil', link: '/' },
+      { label: 'Sessions', link: '/sessions' },
+      { label: sessionLabel, link: `/sessions/${sessionId}` },
+      { label: displayUeId }
+    ]" />
     
     <!-- Titre de la page -->
     <h1 class="text-2xl text-blue-500 font-medium mb-4">Sessions</h1>

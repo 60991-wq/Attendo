@@ -38,6 +38,6 @@ const props = defineProps({
 const emit = defineEmits(['ue-clicked'])
 
 const handleUeClick = (ue) => {
-  emit('ue-clicked', { ue, sessionId: props.sessionId })
+  emit('ue-clicked', ue.ue)
 }
 </script>

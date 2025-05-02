@@ -133,8 +133,9 @@ export default {
       }
     },
     
-    navigateToUE(ue) {
-      this.$router.push(`/sessions/${this.sessionId}/ue/${ue.ue}`)
+    navigateToUE(ueCode) {
+      console.log('UE cliquée (code) :', ueCode)
+      this.$router.push(`/sessions/${this.sessionId}/ue/${ueCode}`)
     }
   }
 }

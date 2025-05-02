@@ -1,184 +1,123 @@
 <template>
-    <div class="p-6 space-y-6">
-      <!-- Fil d'Ariane -->
-      <Breadcrumb :items="[
-        { label: 'Accueil', link: '/' },
-        { label: 'Sessions', link: '/sessions' },
-        { label: sessionLabel, link: `/sessions/${sessionId}` },
-        { label: ueId, link: `/sessions/${sessionId}/ue/${ueId}` },
-        { label: event?.label || 'Épreuve' }
-      ]" />
-  
-      <!-- Loading -->
-      <div v-if="loading" class="flex justify-center my-8">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-fuchsia-600"></div>
+  <div class="p-6 space-y-6">
+    <!-- Fil d'Ariane -->
+    <Breadcrumb :items="[
+      { label: 'Accueil', link: '/' },
+      { label: 'Sessions', link: '/sessions' },
+      { label: sessionLabel, link: `/sessions/${sessionId}` },
+      { label: ueId, link: `/sessions/${sessionId}/ue/${ueId}` },
+      { label: 'Épreuve' }
+    ]" />
+
+    <h1 class="text-xl font-bold mb-4">Détails de l'épreuve</h1>
+
+    <!-- Loader -->
+    <div v-if="loading" class="flex justify-center my-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
+    </div>
+
+    <!-- Message d'erreur -->
+    <div v-else-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+      {{ error }}
+    </div>
+
+    <!-- Détails de l'épreuve -->
+    <div v-else class="bg-white shadow-sm rounded-lg p-4 max-w-md">
+      <div>
+        <h2 class="text-lg font-medium">{{ event.label }}</h2>
+        <p class="mt-2">
+          <span 
+            :class="event.completed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'" 
+            class="px-2 py-1 rounded-full text-xs font-medium"
+          >
+            {{ event.completed ? 'Complété' : 'En cours' }}
+          </span>
+        </p>
       </div>
-  
-      <!-- Détail de l'épreuve -->
-      <template v-else-if="event">
-        <h1 class="text-2xl font-bold">
-          <span class="text-fuchsia-600">{{ event.label }}</span> – {{ ueId }} ({{ sessionLabel }})
-        </h1>
-  
-        <!-- Locaux assignés -->
-        <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-          <div class="bg-gray-900 text-white px-4 py-3 font-medium">
-            Locaux assignés à cette épreuve
-          </div>
-          <div class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div
-                v-for="room in rooms"
-                :key="room.id"
-                class="border rounded-md p-4 hover:bg-gray-50 cursor-pointer"
-                @click="navigateToRoom(room)"
-              >
-                <h3 class="font-medium">{{ room.room_info.label }}</h3>
-                <p class="text-sm text-gray-500">Capacité : {{ room.room_info.capacity }}</p>
-                <p class="text-sm mt-1"><span class="font-medium">Surveillant :</span> {{ room.supervisor || 'Non assigné' }}</p>
-              </div>
-              <div v-if="rooms.length === 0" class="col-span-full p-4 text-center text-gray-500">
-                Aucun local assigné à cette épreuve.
-              </div>
-            </div>
-          </div>
-        </div>
-  
-        <!-- Ajouter un local -->
-        <div class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
-          <div class="bg-gray-100 px-4 py-3 font-medium border-b">
-            Ajouter un local
-          </div>
-          <div class="p-4">
-            <div class="flex flex-col sm:flex-row gap-3">
-              <BaseSelect
-                v-model="selectedRoomId"
-                :options="availableRoomsOptions"
-                placeholder="Choisissez un local"
-                :disabled="formLoading || availableRooms.length === 0"
-                class="flex-grow"
-              />
-              <BaseButton
-                @click="handleAssignRoom"
-                :disabled="!selectedRoomId || formLoading"
-                :loading="formLoading"
-                variant="light"
-              >
-                Assigner ce local
-              </BaseButton>
-            </div>
-            <p v-if="availableRooms.length === 0" class="text-sm text-gray-500 mt-2">
-              Tous les locaux sont déjà assignés.
-            </p>
-          </div>
-        </div>
-      </template>
-  
-      <!-- Erreur -->
-      <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-red-700">
-        {{ error }}
+
+      <div class="mt-6 pt-4 border-t">
+        <BaseButton @click="goBack">Retour aux épreuves</BaseButton>
       </div>
     </div>
-  </template>
+  </div>
+</template>
+
+<script>
+import { supabase } from '@/supabase'
+import Breadcrumb from '@/components/layout/Breadcrumb.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+
+export default {
+  components: { Breadcrumb, BaseButton },
   
-  <script>
-  import Breadcrumb from '@/components/layout/Breadcrumb.vue'
-  import BaseButton from '@/components/ui/BaseButton.vue'
-  import BaseSelect from '@/components/ui/BaseSelect.vue'
-  import {
-    fetchEventDetails,
-    fetchRoomsForEvent,
-    fetchAvailableRooms,
-    assignRoomToEvent
-  } from '@/services/events.js'
-  import { supabase } from '@/supabase'
+  data() {
+    return {
+      sessionId: this.$route.params.sessionId,
+      ueId: this.$route.params.ueId,
+      eventId: this.$route.params.eventId,
+      sessionLabel: '',
+      event: { label: '', completed: false },
+      loading: true,
+      error: ''
+    }
+  },
   
-  export default {
-    components: {
-      Breadcrumb,
-      BaseButton,
-      BaseSelect
-    },
+  async created() {
+    await this.loadData()
+  },
   
-    data() {
-      return {
-        sessionId: this.$route.params.sessionId,
-        ueId: this.$route.params.ueId,
-        eventId: this.$route.params.eventId,
-  
-        sessionLabel: '',
-        event: null,
-        rooms: [],
-        availableRooms: [],
-        selectedRoomId: '',
-        loading: true,
-        formLoading: false,
-        error: null
+  methods: {
+    async loadData() {
+      this.loading = true
+      this.error = ''
+      
+      try {
+        await this.loadSessionDetails()
+        await this.loadEventDetails()
+      } catch (err) {
+        console.error('Erreur chargement:', err)
+      } finally {
+        this.loading = false
       }
     },
-  
-    computed: {
-      availableRoomsOptions() {
-        return this.availableRooms.map(r => ({
-          value: r.id,
-          label: `${r.label} (${r.capacity} places)`
-        }))
+    
+    async loadSessionDetails() {
+      try {
+        const { data, error } = await supabase
+          .from('session')
+          .select('label')
+          .eq('id', this.sessionId)
+          .single()
+          
+        if (error) throw error
+        this.sessionLabel = data.label
+      } catch (err) {
+        console.error('Erreur chargement session:', err)
       }
     },
-  
-    async created() {
-      await this.loadData()
-    },
-  
-    methods: {
-      async loadData() {
-        this.loading = true
-        this.error = null
-  
-        try {
-          const sessionRes = await supabase.from('session').select('label').eq('id', this.sessionId).single()
-          if (sessionRes.error) throw sessionRes.error
-          this.sessionLabel = sessionRes.data.label
-  
-          this.event = await fetchEventDetails(this.eventId)
-          this.rooms = await fetchRoomsForEvent(this.eventId)
-          this.availableRooms = await fetchAvailableRooms(this.eventId)
-  
-        } catch (e) {
-          console.error(e)
-          this.error = 'Impossible de charger les données.'
-        } finally {
-          this.loading = false
+    
+    async loadEventDetails() {
+      try {
+        const { data, error } = await supabase
+          .from('event')
+          .select('*')
+          .eq('id', this.eventId)
+          .single()
+
+        if (error) {
+          this.error = "Impossible de charger les détails de l'épreuve"
+          throw error
         }
-      },
-  
-      async handleAssignRoom() {
-        if (!this.selectedRoomId) return
-        this.formLoading = true
-  
-        try {
-          await assignRoomToEvent(this.eventId, this.selectedRoomId)
-          this.selectedRoomId = ''
-          await this.loadData()
-        } catch (e) {
-          alert('Erreur lors de l’assignation du local.')
-        } finally {
-          this.formLoading = false
-        }
-      },
-  
-      navigateToRoom(room) {
-        this.$router.push({
-          name: 'room-detail',
-          params: {
-            sessionId: this.sessionId,
-            ueId: this.ueId,
-            eventId: this.eventId,
-            roomId: room.id
-          }
-        })
+        
+        this.event = data
+      } catch (err) {
+        console.error('Erreur chargement épreuve:', err)
       }
+    },
+    
+    goBack() {
+      this.$router.push(`/sessions/${this.sessionId}/ue/${this.ueId}`)
     }
   }
-  </script>
-  
+}
+</script>
