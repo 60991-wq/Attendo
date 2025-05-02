@@ -1,29 +1,26 @@
 <template>
   <div class="min-h-screen">
     <!-- En-tête -->
-    <AppHeader />
+    <header class="bg-black py-4">
+      <h1 class="text-center text-fuchsia-600 text-3xl font-bold">Attendo</h1>
+    </header>
     
-    <!-- Navigation avec le composant NavMenu -->
+    <!-- Navigation -->
     <nav class="flex justify-between items-center bg-gray-100 px-6 py-2 border-b">
-      <NavMenu />
+      <div class="space-x-6 text-gray-800 text-sm">
+        <RouterLink to="/" class="hover:text-fuchsia-600 transition-colors" :class="{ 'text-fuchsia-600': $route.path === '/' }">Accueil</RouterLink>
+        <RouterLink to="/sessions" class="hover:text-fuchsia-600 transition-colors" :class="{ 'text-fuchsia-600': $route.path.startsWith('/sessions') }">Sessions</RouterLink>
+        <RouterLink to="/about" class="hover:text-fuchsia-600 transition-colors" :class="{ 'text-fuchsia-600': $route.path === '/about' }">À propos</RouterLink>
+      </div>
       
       <div class="flex items-center space-x-2 text-sm">
         <span v-if="userStore.user">{{ userStore.user.email }}</span>
-        <BaseButton 
-          v-if="userStore.user" 
-          @click="handleSignOut" 
-          variant="link" 
-          class="text-red-600 hover:text-red-800"
-        >
+        <button v-if="userStore.user" @click="handleSignOut" class="text-red-600 underline hover:text-red-800">
           Déconnexion
-        </BaseButton>
-        <BaseButton 
-          v-else 
-          @click="handleSignIn" 
-          variant="outline"
-        >
+        </button>
+        <button v-else @click="handleSignIn" class="border px-3 py-1 rounded hover:bg-gray-200">
           Connexion avec Google
-        </BaseButton>
+        </button>
       </div>
     </nav>
     
@@ -40,27 +37,20 @@
 </template>
 
 <script>
-import { RouterView } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { supabase } from '@/services/SupabaseClient' 
-import AppHeader from '@/components/layout/AppHeader.vue'
-import NavMenu from '@/components/layout/NavMenu.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
+import { supabase } from '@/services/SupabaseClient' // Utilise le service supabaseClient
 
 export default {
   components: {
-    RouterView,
-    AppHeader,
-    NavMenu,
-    BaseButton
+    RouterLink,
+    RouterView
   },
-  
   data() {
     return {
       userStore: useUserStore()
     }
   },
-  
   created() {
     this.loadUser()
     
@@ -70,7 +60,6 @@ export default {
       if (!session) this.$router.push('/')
     })
   },
-  
   methods: {
     async loadUser() {
       try {
