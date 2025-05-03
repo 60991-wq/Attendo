@@ -42,7 +42,14 @@ const router = createRouter({
       name: 'EventRooms',
       component: () => import('@/views/EventRoomsView.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/event/:eventId/room/:roomId/presence',
+      name: 'PresenceView',
+      component: () => import('@/views/PresenceView.vue'),
+      meta: { requiresAuth: true }
     }
+    
   ]
 })
 

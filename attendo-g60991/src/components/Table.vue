@@ -8,11 +8,12 @@
         </thead>
         <tbody>
           <tr
-            v-for="(row, index) in rows"
-            :key="index"
-            class="border-t hover:bg-gray-50 cursor-pointer"
-            @click="$emit('row-click', row)"
+        v-for="(row, index) in rows"
+        :key="index"
+         :class="['border-t hover:bg-gray-50 cursor-pointer', { 'bg-blue-100': row.present }]"
+         @click="$emit('row-click', row)"
           >
+
             <td
               v-for="key in columns"
               :key="key"
@@ -28,11 +29,11 @@
   
   <script setup>
   defineProps({
-    headers: Array,   // ex : ['Sessions']
-    rows: Array,      // ex : [{ id: 1, label: 'Janvier' }]
-    columns: Array    // ex : ['label']
+    headers: Array,   
+    rows: Array,     
+    columns: Array    
   })
   
-  defineEmits(['row-click']) // permet de gérer un clic sur une ligne
+  defineEmits(['row-click']) 
   </script>
   

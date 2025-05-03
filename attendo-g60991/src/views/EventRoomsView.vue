@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchAllRooms } from '@/services/roomService'
 import { fetchUsedRooms, assignRoomToEvent } from '@/services/eventRomService'
 
 const route = useRoute()
+const router = useRouter()
+
 const eventId = route.params.id
 const eventLabel = route.query.label
 const session = route.query.session
@@ -14,8 +16,8 @@ const ue = route.query.ue
 const allRooms = ref([])
 const usedRooms = ref([])
 const selectedRoom = ref('')
+const isLoading = ref(false)
 
-// Locaux disponibles = tous les locaux non déjà assignés à cet event
 const availableRooms = computed(() =>
   allRooms.value.filter(room => !usedRooms.value.includes(room.label))
 )
@@ -26,15 +28,38 @@ onMounted(async () => {
 })
 
 const addRoom = async () => {
-  if (!selectedRoom.value) return
+  if (
+    !selectedRoom.value ||
+    isLoading.value ||
+    usedRooms.value.includes(selectedRoom.value)
+  ) return
+
+  isLoading.value = true
   try {
     await assignRoomToEvent(eventId, selectedRoom.value)
     usedRooms.value.push(selectedRoom.value)
     selectedRoom.value = ''
   } catch (e) {
     console.error('Erreur lors de l’ajout du local :', e)
+  } finally {
+    isLoading.value = false
   }
 }
+const goToPresence = (roomLabel) => {
+  router.push({
+    name: 'PresenceView',
+    params: {
+      eventId,
+      roomId: roomLabel
+    },
+    query: {
+      room: roomLabel,
+      ue,
+      session
+    }
+  })
+}
+
 </script>
 
 <template>
@@ -43,7 +68,7 @@ const addRoom = async () => {
       { label: 'Accueil', link: '/' },
       { label: 'Sessions', link: '/sessions' },
       { label: 'Session', link: `/sessions/${session}` },
-      { label: 'UE', link: '#' },
+      { label: 'UE' },
       { label: 'Épreuve' }
     ]" />
 
@@ -62,19 +87,21 @@ const addRoom = async () => {
         </option>
       </select>
       <button
-        class="bg-fuchsia-600 text-white px-4 py-1 rounded hover:bg-fuchsia-700"
+        :disabled="isLoading"
         @click="addRoom"
+        class="bg-fuchsia-600 text-white px-4 py-1 rounded hover:bg-fuchsia-700 disabled:opacity-50"
       >
         Ajouter
       </button>
     </div>
 
-    <!-- Affichage des locaux assignés -->
+    <!-- Locaux assignés cliquables -->
     <div class="flex flex-wrap gap-4">
       <div
         v-for="label in usedRooms"
         :key="label"
-        class="bg-white p-4 border rounded shadow text-center min-w-[120px]"
+        class="bg-white p-4 border rounded shadow text-center min-w-[120px] cursor-pointer hover:bg-gray-100"
+        @click="goToPresence(label)"
       >
         <div class="text-xl font-bold text-blue-900">{{ label }}</div>
         <div class="text-sm text-gray-500 mt-1">Surveillant : -</div>
