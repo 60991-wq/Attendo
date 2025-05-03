@@ -24,7 +24,14 @@ const router = createRouter({
       name: 'sessions',
       component: SessionsView,
       meta: { requiresAuth: true } // optionnel si tu veux protéger cette route
+    },
+    {
+      path: '/sessions/:id',
+      name: 'SessionDetail',
+      component: () => import('@/views/SessionDetailView.vue'),
+      meta: { requiresAuth: true }
     }
+    
   ]
 })
 
