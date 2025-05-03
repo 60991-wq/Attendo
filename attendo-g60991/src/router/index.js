@@ -3,7 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import AboutView from '../views/AboutView.vue'
 import SessionsView from '../views/SessionView.vue'
 import SessionDetailView from '../views/SessionDetailView.vue'
-import EventView from '../views/EventView.vue' // renommer proprement
+import EventView from '../views/EventView.vue'
 import { supabase } from '@/supabase'
 
 const router = createRouter({
@@ -34,13 +34,19 @@ const router = createRouter({
     {
       path: '/session-compo/:id/events',
       name: 'EventList',
-      component: () => import('@/views/EventView.vue'),
+      component: EventView,
       meta: { requiresAuth: true }
-    }    
+    },
+    {
+      path: '/event/:id/rooms',
+      name: 'EventRooms',
+      component: () => import('@/views/EventRoomsView.vue'),
+      meta: { requiresAuth: true }
+    }
   ]
 })
 
-// ✅ Redirection si l’utilisateur n’est pas connecté
+// ✅ Protection des routes avec authentification
 router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth) {
     const { data } = await supabase.auth.getUser()

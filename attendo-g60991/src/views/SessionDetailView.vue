@@ -79,7 +79,7 @@
   const goToEvent = (compo) => {
     router.push({
       name: 'EventList',
-      params: { id: compo.id }, // id de session_compo
+      params: { id: compo.id }, 
       query: {
         ue: compo.ue,
         session: sessionLabel.value

@@ -19,7 +19,8 @@
       <div
         v-for="event in events"
         :key="event.id"
-        class="bg-gray-100 p-4 rounded shadow min-w-[150px] text-center font-semibold"
+        class="bg-gray-100 p-4 rounded shadow min-w-[150px] text-center font-semibold cursor-pointer hover:bg-gray-200"
+        @click="goToRooms(event)"
       >
         {{ event.label }}
       </div>
@@ -46,16 +47,29 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchEvents, createEvent } from '@/services/eventService'
 
 const route = useRoute()
+const router = useRouter()
+const sessionCompoId = route.params.id
+
 const events = ref([])
 const newEventLabel = ref('')
 
-// ⚠️ Utilisation de l'ID réel de la session_compo (clé étrangère)
-const sessionCompoId = route.params.id
+// ✅ Corrigé ici : 'EventRooms' au lieu de 'RoomList'
+const goToRooms = (event) => {
+  router.push({
+    name: 'EventRooms',
+    params: { id: event.id },
+    query: {
+      label: event.label,
+      ue: route.query.ue,
+      session: route.query.session
+    }
+  })
+}
 
 const loadEvents = async () => {
   try {
