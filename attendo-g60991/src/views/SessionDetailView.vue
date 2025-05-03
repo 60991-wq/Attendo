@@ -1,6 +1,6 @@
 <template>
     <div class="w-full px-6 mt-6">
-      <!-- Fil d'Ariane -->
+      <!-- Breadcrumb -->
       <Breadcrumb :items="[
         { label: 'Accueil', link: '/' },
         { label: 'Sessions', link: '/sessions' },
@@ -12,14 +12,27 @@
       </h2>
   
       <!-- Table des UEs associées -->
-      <Table
-        :headers="['UE']"
-        :rows="sessionCompos"
-        :columns="['ue']"
-        class="mb-8"
-      />
+      <div class="bg-white shadow rounded overflow-hidden mb-8">
+        <table class="w-full text-left">
+          <thead class="bg-gray-200 text-gray-700 text-sm uppercase">
+            <tr>
+              <th class="p-3">UE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="compo in sessionCompos"
+              :key="compo.id"
+              class="border-t hover:bg-gray-50 cursor-pointer"
+              @click="goToEvent(compo)"
+            >
+              <td class="p-3 text-fuchsia-600 hover:underline">{{ compo.ue }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
   
-      <!-- Formulaire d'ajout d'UE -->
+      <!-- Formulaire ajout UE -->
       <form @submit.prevent="addUE" class="bg-white shadow rounded p-4 flex items-center space-x-4 max-w-xl">
         <select v-model="selectedUE" class="border px-3 py-1 rounded w-full">
           <option value="" disabled>Choisissez d'une ue</option>
@@ -38,9 +51,8 @@
   
   <script setup>
   import { ref, onMounted, computed } from 'vue'
-  import { useRoute } from 'vue-router'
+  import { useRoute, useRouter } from 'vue-router'
   import Breadcrumb from '@/components/Breadcrumb.vue'
-  import Table from '@/components/Table.vue'
   
   import {
     fetchSessionLabel,
@@ -50,6 +62,7 @@
   } from '@/services/SessionDetailView'
   
   const route = useRoute()
+  const router = useRouter()
   const sessionId = route.params.id
   
   const sessionLabel = ref('')
@@ -57,14 +70,24 @@
   const allUEs = ref([])
   const selectedUE = ref('')
   
-  // UE disponibles = toutes sauf celles déjà liées à la session
+  // 🔁 UE encore disponibles
   const availableUEs = computed(() =>
-    allUEs.value.filter(
-      ue => !sessionCompos.value.some(c => c.ue === ue.ue)
-    )
+    allUEs.value.filter(ue => !sessionCompos.value.some(c => c.ue === ue.ue))
   )
   
-  // Charger tous les détails depuis le service
+  // ✅ Redirection vers les épreuves d’une UE
+  const goToEvent = (compo) => {
+    router.push({
+      name: 'EventList',
+      params: { id: compo.id }, // id de session_compo
+      query: {
+        ue: compo.ue,
+        session: sessionLabel.value
+      }
+    })
+  }
+  
+  // ✅ Chargement initial
   const loadSessionDetail = async () => {
     try {
       sessionLabel.value = await fetchSessionLabel(sessionId)
@@ -75,12 +98,12 @@
     }
   }
   
-  // Ajouter une UE à la session
+  // ✅ Ajout d’une UE
   const addUE = async () => {
     if (!selectedUE.value) return
     try {
-      await addUEToSession(sessionId, selectedUE.value)
-      sessionCompos.value.push({ ue: selectedUE.value })
+      const inserted = await addUEToSession(sessionId, selectedUE.value)
+      sessionCompos.value.push(inserted) // on garde l’ID pour redirection
       selectedUE.value = ''
     } catch (e) {
       console.error('Erreur lors de l’ajout de l’UE :', e)

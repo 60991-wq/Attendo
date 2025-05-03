@@ -1,10 +1,10 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AboutView from '../views/AboutView.vue'
-import SessionsView from '../views/SessionView.vue' // N'oublie pas cet import !
-
-import { supabase } from '@/supabase' // ou '@/services/SupabaseClient' selon ton projet
+import SessionsView from '../views/SessionView.vue'
+import SessionDetailView from '../views/SessionDetailView.vue'
+import EventView from '../views/EventView.vue' // renommer proprement
+import { supabase } from '@/supabase'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,15 +23,20 @@ const router = createRouter({
       path: '/sessions',
       name: 'sessions',
       component: SessionsView,
-      meta: { requiresAuth: true } // optionnel si tu veux protéger cette route
+      meta: { requiresAuth: true }
     },
     {
       path: '/sessions/:id',
       name: 'SessionDetail',
-      component: () => import('@/views/SessionDetailView.vue'),
+      component: SessionDetailView,
       meta: { requiresAuth: true }
-    }
-    
+    },
+    {
+      path: '/session-compo/:id/events',
+      name: 'EventList',
+      component: () => import('@/views/EventView.vue'),
+      meta: { requiresAuth: true }
+    }    
   ]
 })
 
@@ -39,8 +44,9 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth) {
     const { data } = await supabase.auth.getUser()
-    const user = data.user
-    if (!user) return next('/')
+    if (!data.user) {
+      return next('/')
+    }
   }
   next()
 })
