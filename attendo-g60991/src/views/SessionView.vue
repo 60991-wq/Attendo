@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="w-full px-6 mt-6">
       <!-- Fil d'Ariane -->
       <Breadcrumb :items="[
         { label: 'Accueil', link: '/' },
@@ -9,28 +9,16 @@
       <h2 class="text-xl font-bold mb-4">Sessions</h2>
   
       <!-- Table des sessions -->
-      <div class="bg-white shadow rounded overflow-hidden w-full md:w-1/2 mb-8">
-        <table class="w-full text-left">
-          <thead class="bg-gray-200 text-gray-700 text-sm uppercase">
-            <tr>
-              <th class="p-3">Sessions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="session in sessions"
-              :key="session.id"
-              class="border-t hover:bg-gray-50 cursor-pointer"
-              @click="$router.push(`/sessions/${session.id}`)"
-            >
-              <td class="p-3 text-fuchsia-600 hover:underline">{{ session.label }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <Table
+        :headers="['Sessions']"
+        :rows="sessions"
+        :columns="['label']"
+        @row-click="goToSession"
+        class="mb-8"
+      />
   
-      <!-- Ajout d'une session -->
-      <form @submit.prevent="addSession" class="bg-white shadow rounded p-4 w-full md:w-1/2 flex items-center space-x-4">
+      <!-- Formulaire d'ajout -->
+      <form @submit.prevent="addSession" class="bg-white shadow rounded p-4 flex items-center space-x-4 w-full max-w-xl">
         <div class="flex items-center space-x-2 flex-grow">
           <span class="text-xl">👥</span>
           <input
@@ -52,12 +40,21 @@
   
   <script setup>
   import { ref, onMounted } from 'vue'
+  import { useRouter } from 'vue-router'
   import { fetchSessions, createSession } from '@/services/listSessionsService'
   import Breadcrumb from '@/components/Breadcrumb.vue'
+  import Table from '@/components/Table.vue'
   
+  const router = useRouter()
   const sessions = ref([])
   const newSession = ref({ label: '' })
   
+  // Redirection vers le détail d'une session
+  const goToSession = (session) => {
+    router.push(`/sessions/${session.id}`)
+  }
+  
+  // Chargement des sessions au démarrage
   const loadSessions = async () => {
     try {
       sessions.value = await fetchSessions()
@@ -66,12 +63,14 @@
     }
   }
   
+  // Ajout d'une nouvelle session
   const addSession = async () => {
-    if (!newSession.value.label.trim()) return
+    const label = newSession.value.label.trim()
+    if (!label) return
     try {
-      await createSession(newSession.value)
+      const created = await createSession({ label })
+      sessions.value.push(created)
       newSession.value.label = ''
-      await loadSessions()
     } catch (e) {
       console.error('Erreur lors de l’ajout :', e)
     }
