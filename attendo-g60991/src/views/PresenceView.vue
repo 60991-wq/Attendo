@@ -1,20 +1,19 @@
 <template>
   <div class="p-6">
-    <!-- Fil d’Ariane avec le bon composant -->
+    <!-- Fil d’Ariane -->
     <Breadcrumb :items="breadcrumbItems" />
 
     <!-- Titre -->
     <h2 class="text-xl font-bold mb-2">
-     Prise de présence pour le local {{ room }}
-    <span v-if="supervisor">par {{ supervisor.toUpperCase() }}</span>
+      Prise de présence pour le local {{ room }}
+      <span v-if="supervisor">par {{ supervisor.toUpperCase() }}</span>
     </h2>
-
 
     <!-- Choix surveillant -->
     <div class="flex items-center gap-4 mb-6">
       <label class="text-gray-600">Surveillant</label>
       <input
-        v-model="supervisor"
+        v-model="inputSupervisor"
         class="border px-3 py-1 rounded w-full max-w-xs"
         placeholder="Nom ou acronyme"
       />
@@ -26,7 +25,7 @@
       </button>
     </div>
 
-    <!-- Tableau -->
+    <!-- Tableau étudiants -->
     <Table
       :headers="['MATRICULE', 'GROUPE', 'NOM', 'PRÉNOM']"
       :columns="['matricule', 'group', 'nom', 'prénom']"
@@ -44,29 +43,35 @@ import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchStudentsForRoomPresence } from '@/services/studentService'
 import { supabase } from '@/supabase'
 
+// 🔧 Récupération des paramètres de route
 const route = useRoute()
 const eventId = route.params.eventId
 const ue = route.query.ue
 const room = route.query.room
 const session = route.query.session
 
+// ✅ Données réactives
 const students = ref([])
-const supervisor = ref('')
+const supervisor = ref('')             // Pour afficher dans le titre
+const inputSupervisor = ref('')        // Pour le champ input
 
+// 📦 Chargement initial
 onMounted(async () => {
   students.value = await fetchStudentsForRoomPresence(eventId, room, ue)
   await fetchSupervisor()
 })
 
+// 🧭 Fil d’ariane
 const breadcrumbItems = computed(() => [
   { label: 'Accueil', link: '/' },
   { label: 'Sessions', link: '/sessions' },
   { label: 'Session', link: `/sessions/${session}` },
   { label: 'UE', link: `/sessions/${session}/ue/${ue}` },
   { label: 'Épreuve', link: `/sessions/${session}/ue/${ue}/exam` },
-  { label: 'Local' } 
+  { label: 'Local' }
 ])
 
+// 🔄 Récupération du surveillant actuel
 const fetchSupervisor = async () => {
   const { data, error } = await supabase
     .from('examination_room')
@@ -79,8 +84,12 @@ const fetchSupervisor = async () => {
     supervisor.value = data.supervisor || ''
   }
 }
+
+// ✅ Mise à jour ou insertion du surveillant
 const updateSupervisor = async () => {
-  // Vérifie si une ligne existe déjà
+  const value = inputSupervisor.value.trim()
+  if (!value) return
+
   const { data: existing, error: fetchErr } = await supabase
     .from('examination_room')
     .select('id')
@@ -94,31 +103,34 @@ const updateSupervisor = async () => {
   }
 
   if (existing) {
-    // Si existe, mettre à jour
     const { error: updateErr } = await supabase
       .from('examination_room')
-      .update({ supervisor: supervisor.value })
+      .update({ supervisor: value })
       .eq('id', existing.id)
 
     if (updateErr) {
       console.error('Erreur mise à jour surveillant :', updateErr)
     } else {
       alert('Surveillant mis à jour avec succès.')
+      inputSupervisor.value = ''     // ✅ vide l’input
+      await fetchSupervisor()        // ✅ recharge le nom
     }
   } else {
-    // Sinon, insérer une nouvelle ligne
     const { error: insertErr } = await supabase
       .from('examination_room')
-      .insert({ event: eventId, room, supervisor: supervisor.value })
+      .insert({ event: eventId, room, supervisor: value })
 
     if (insertErr) {
       console.error('Erreur insertion surveillant :', insertErr)
     } else {
       alert('Surveillant défini avec succès.')
+      inputSupervisor.value = ''     // ✅ vide l’input
+      await fetchSupervisor()        // ✅ recharge le nom
     }
   }
 }
 
+// ✅ Prise de présence
 const togglePresence = async (student) => {
   student.present = !student.present
 
