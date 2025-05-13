@@ -1,17 +1,17 @@
 <template>
   <div class="w-full px-6 mt-6">
-    <!-- Fil d’Ariane -->
+    <!-- Fil d'Ariane -->
     <Breadcrumb :items="[
       { label: 'Accueil', link: '/' },
       { label: 'Sessions', link: '/sessions' },
-      { label: 'Session', link: `/sessions/${route.query.session}` },
+      { label: 'Session', link: `/sessions/${$route.query.session}` },
       { label: 'UE' }
     ]" />
 
     <h2 class="text-xl font-bold mb-4">
       Liste des épreuves de
-      <span class="text-fuchsia-600">{{ route.query.ue }}</span>
-      <span class="text-sm italic">(session : {{ route.query.session }})</span>
+      <span class="text-fuchsia-600">{{ $route.query.ue }}</span>
+      <span class="text-sm italic">(session : {{ $route.query.session }})</span>
     </h2>
 
     <!-- Liste des épreuves -->
@@ -45,50 +45,62 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+<script>
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchEvents, createEvent } from '@/services/eventService'
 
-const route = useRoute()
-const router = useRouter()
-const sessionCompoId = route.params.id
-
-const events = ref([])
-const newEventLabel = ref('')
-
-// ✅ Corrigé ici : 'EventRooms' au lieu de 'RoomList'
-const goToRooms = (event) => {
-  router.push({
-    name: 'EventRooms',
-    params: { id: event.id },
-    query: {
-      label: event.label,
-      ue: route.query.ue,
-      session: route.query.session
+export default {
+  name: 'EventView',
+  
+  components: {
+    Breadcrumb
+  },
+  
+  data() {
+    return {
+      sessionCompoId: this.$route.params.id,
+      events: [],
+      newEventLabel: ''
     }
-  })
-}
-
-const loadEvents = async () => {
-  try {
-    events.value = await fetchEvents(sessionCompoId)
-  } catch (e) {
-    console.error('Erreur chargement events :', e)
+  },
+  
+  methods: {
+    goToRooms(event) {
+      this.$router.push({
+        name: 'eventRooms',
+        params: { id: event.id },
+        query: {
+          label: event.label,
+          ue: this.$route.query.ue,
+          session: this.$route.query.session
+        }
+      })
+    },
+    
+    async loadEvents() {
+      try {
+        const result = await fetchEvents(this.sessionCompoId)
+        this.events = result
+      } catch (error) {
+        console.error('Erreur chargement events :', error)
+      }
+    },
+    
+    async addEvent() {
+      if (!this.newEventLabel.trim()) return
+      
+      try {
+        const result = await createEvent(this.sessionCompoId, this.newEventLabel)
+        this.events.push(result)
+        this.newEventLabel = ''
+      } catch (error) {
+        console.error('Erreur création épreuve :', error)
+      }
+    }
+  },
+  
+  mounted() {
+    this.loadEvents()
   }
 }
-
-const addEvent = async () => {
-  if (!newEventLabel.value.trim()) return
-  try {
-    const created = await createEvent(sessionCompoId, newEventLabel.value)
-    events.value.push(created)
-    newEventLabel.value = ''
-  } catch (e) {
-    console.error('Erreur création épreuve :', e)
-  }
-}
-
-onMounted(loadEvents)
 </script>

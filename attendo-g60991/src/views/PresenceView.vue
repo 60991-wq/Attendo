@@ -1,6 +1,6 @@
 <template>
   <div class="p-6">
-    <!-- Fil d’Ariane -->
+    <!-- Fil d'Ariane -->
     <Breadcrumb :items="breadcrumbItems" />
 
     <!-- Titre -->
@@ -35,133 +35,171 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+<script>
 import Table from '@/components/Table.vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchStudentsForRoomPresence } from '@/services/studentService'
 import { supabase } from '@/supabase'
 
-// 🔧 Récupération des paramètres de route
-const route = useRoute()
-const eventId = route.params.eventId
-const ue = route.query.ue
-const room = route.query.room
-const session = route.query.session
-
-// ✅ Données réactives
-const students = ref([])
-const supervisor = ref('')             // Pour afficher dans le titre
-const inputSupervisor = ref('')        // Pour le champ input
-
-// 📦 Chargement initial
-onMounted(async () => {
-  students.value = await fetchStudentsForRoomPresence(eventId, room, ue)
-  await fetchSupervisor()
-})
-
-// 🧭 Fil d’ariane
-const breadcrumbItems = computed(() => [
-  { label: 'Accueil', link: '/' },
-  { label: 'Sessions', link: '/sessions' },
-  { label: 'Session', link: `/sessions/${session}` },
-  { label: 'UE', link: `/sessions/${session}/ue/${ue}` },
-  { label: 'Épreuve', link: `/sessions/${session}/ue/${ue}/exam` },
-  { label: 'Local' }
-])
-
-// 🔄 Récupération du surveillant actuel
-const fetchSupervisor = async () => {
-  const { data, error } = await supabase
-    .from('examination_room')
-    .select('supervisor')
-    .eq('event', eventId)
-    .eq('room', room)
-    .single()
-
-  if (!error && data) {
-    supervisor.value = data.supervisor || ''
-  }
-}
-
-// ✅ Mise à jour ou insertion du surveillant
-const updateSupervisor = async () => {
-  const value = inputSupervisor.value.trim()
-  if (!value) return
-
-  const { data: existing, error: fetchErr } = await supabase
-    .from('examination_room')
-    .select('id')
-    .eq('event', eventId)
-    .eq('room', room)
-    .single()
-
-  if (fetchErr) {
-    console.error('Erreur récupération examination_room :', fetchErr)
-    return
-  }
-
-  if (existing) {
-    const { error: updateErr } = await supabase
-      .from('examination_room')
-      .update({ supervisor: value })
-      .eq('id', existing.id)
-
-    if (updateErr) {
-      console.error('Erreur mise à jour surveillant :', updateErr)
-    } else {
-      alert('Surveillant mis à jour avec succès.')
-      inputSupervisor.value = ''     // ✅ vide l’input
-      await fetchSupervisor()        // ✅ recharge le nom
+export default {
+  name: 'PresenceView',
+  
+  components: {
+    Table,
+    Breadcrumb
+  },
+  
+  data() {
+    return {
+      eventId: this.$route.params.eventId,
+      ue: this.$route.query.ue,
+      room: this.$route.query.room,
+      session: this.$route.query.session,
+      
+      // ✅ Données réactives
+      students: [],
+      supervisor: '',             
+      inputSupervisor: ''         
     }
-  } else {
-    const { error: insertErr } = await supabase
-      .from('examination_room')
-      .insert({ event: eventId, room, supervisor: value })
-
-    if (insertErr) {
-      console.error('Erreur insertion surveillant :', insertErr)
-    } else {
-      alert('Surveillant défini avec succès.')
-      inputSupervisor.value = ''     // ✅ vide l’input
-      await fetchSupervisor()        // ✅ recharge le nom
+  },
+  
+  computed: {
+    // 🧭 Fil d'ariane
+    breadcrumbItems() {
+      return [
+        { label: 'Accueil', link: '/' },
+        { label: 'Sessions', link: '/sessions' },
+        { label: 'Session', link: `/sessions/${this.session}` },
+        { label: 'UE', link: `/sessions/${this.session}/ue/${this.ue}` },
+        { label: 'Épreuve', link: `/sessions/${this.session}/ue/${this.ue}/exam` },
+        { label: 'Local' }
+      ]
     }
-  }
-}
+  },
+  
+  methods: {
+    async fetchSupervisor() {
+      try {
+        const result = await supabase
+          .from('examination_room')
+          .select('supervisor')
+          .eq('event', this.eventId)
+          .eq('room', this.room)
+          .single()
 
-// ✅ Prise de présence
-const togglePresence = async (student) => {
-  student.present = !student.present
+        if (!result.error && result.data) {
+          this.supervisor = result.data.supervisor || ''
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération du surveillant:', error)
+      }
+    },
+    
+    async updateSupervisor() {
+      const value = this.inputSupervisor.trim()
+      if (!value) return
 
-  const { data: examRoomData, error: roomErr } = await supabase
-    .from('examination_room')
-    .select('id')
-    .eq('event', eventId)
-    .eq('room', room)
-    .single()
+      try {
+        const existingResult = await supabase
+          .from('examination_room')
+          .select('id')
+          .eq('event', this.eventId)
+          .eq('room', this.room)
+          .single()
 
-  if (roomErr || !examRoomData) {
-    console.error('Erreur récupération examination_room :', roomErr)
-    return
-  }
+        if (existingResult.error) {
+          console.error('Erreur récupération examination_room :', existingResult.error)
+          return
+        }
 
-  const roomId = examRoomData.id
+        if (existingResult.data) {
+          const updateResult = await supabase
+            .from('examination_room')
+            .update({ supervisor: value })
+            .eq('id', existingResult.data.id)
 
-  if (student.present) {
-    const { error } = await supabase.from('examination').insert({
-      student: student.matricule,
-      examination_room: roomId
-    })
-    if (error) console.error('Erreur ajout présence :', error)
-  } else {
-    const { error } = await supabase
-      .from('examination')
-      .delete()
-      .eq('student', student.matricule)
-      .eq('examination_room', roomId)
+          if (updateResult.error) {
+            console.error('Erreur mise à jour surveillant :', updateResult.error)
+          } else {
+            alert('Surveillant mis à jour avec succès.')
+            this.inputSupervisor = ''     
+            await this.fetchSupervisor() 
+          }
+        } else {
+          const insertResult = await supabase
+            .from('examination_room')
+            .insert({ event: this.eventId, room: this.room, supervisor: value })
 
-    if (error) console.error('Erreur suppression présence :', error)
+          if (insertResult.error) {
+            console.error('Erreur insertion surveillant :', insertResult.error)
+          } else {
+            alert('Surveillant défini avec succès.')
+            this.inputSupervisor = ''     
+            await this.fetchSupervisor()  
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du surveillant:', error)
+      }
+    },
+    
+    async togglePresence(student) {
+      try {
+        student.present = !student.present
+
+        const roomResult = await supabase
+          .from('examination_room')
+          .select('id')
+          .eq('event', this.eventId)
+          .eq('room', this.room)
+          .single()
+
+        if (roomResult.error || !roomResult.data) {
+          console.error('Erreur récupération examination_room :', roomResult.error)
+          return
+        }
+
+        const roomId = roomResult.data.id
+
+        if (student.present) {
+          const insertResult = await supabase.from('examination').insert({
+            student: student.matricule,
+            examination_room: roomId
+          })
+          
+          if (insertResult.error) {
+            console.error('Erreur ajout présence :', insertResult.error)
+          }
+        } else {
+          const deleteResult = await supabase
+            .from('examination')
+            .delete()
+            .eq('student', student.matricule)
+            .eq('examination_room', roomId)
+
+          if (deleteResult.error) {
+            console.error('Erreur suppression présence :', deleteResult.error)
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors de la modification de présence:', error)
+      }
+    },
+    
+    async loadInitialData() {
+      try {
+        const studentsResult = await fetchStudentsForRoomPresence(this.eventId, this.room, this.ue)
+        this.students = studentsResult
+        await this.fetchSupervisor()
+      } catch (error) {
+        console.error('Erreur lors du chargement initial:', error)
+      }
+    }
+  },
+  
+  // 📦 Chargement initial
+  mounted() {
+    this.loadInitialData()
   }
 }
 </script>
