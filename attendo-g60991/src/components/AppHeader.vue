@@ -33,33 +33,28 @@
 </template>
 
 <script>
+import { mapState, mapActions } from 'pinia';
 import { useUserStore } from '@/stores/user';
-import { supabase } from '@/services/SupabaseClient'; 
+import { supabase } from '@/services/SupabaseClient';
 import { RouterLink } from 'vue-router';
 
-export default{
-  name :'AppHearder',
-  components:{
+export default {
+  name: 'AppHeader',
+  components: {
     RouterLink
   },
-  data(){
-    return{
-      userStore:useUserStore()
+  computed: {
+    ...mapState(useUserStore, ['user'])
+  },
+  methods: {
+    ...mapActions(useUserStore, ['setUser']),
+    async handleLogin() {
+      await supabase.auth.signInWithOAuth({ provider: 'google' })
+    },
+    async handleLogout() {
+      await supabase.auth.signOut()
+      this.setUser(null)
     }
-  },
-  computed:{
-    user(){
-    return this.useStore.user
   }
-},
-methods:{
-  async handleLogin(){
-    await supabase.auth.signWithAuth({ provider: 'google' })
-  },
-  async handleLogout(){
-    await supabase.auth.signOut()
-    this.useUserStore.setUser(null)
-  }
-}
 }
 </script>

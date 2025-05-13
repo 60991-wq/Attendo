@@ -34,16 +34,16 @@
 </template>
 
 <script>
-export default{
-  name : 'Breadcrumb',
+export default {
+  name: 'Breadcrumb',
   props: {
     items: {
       type: Array,
-    required: true,
-    validator(value) {
-      return value.every(item => item.hasOwnProperty('label'));
-    }
-  }
-}
+      required: true,
+      validator(value) {
+        return value.every(item => item.hasOwnProperty('label'));
+     }
+   }
+ }
 }
 </script>
