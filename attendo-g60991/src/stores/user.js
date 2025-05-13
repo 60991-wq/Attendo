@@ -1,10 +1,18 @@
 // src/stores/user.js
-import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
-export const useUserStore = defineStore('user', () => {
-const user = ref(null)
-const isLoadingUser = ref(true)
+export const useUserStore = defineStore('user', {
 
-return { user, isLoadingUser }
+    state: () =>({
+        user: null,
+        isLoadingUser:true
+    }),
+    actions:{
+        setUser(user){
+            this.user =user
+        },
+        setLoading(isLoading){
+            this.isLoadingUser= isLoading
+        }
+    }
 })

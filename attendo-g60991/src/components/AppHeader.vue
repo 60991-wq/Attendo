@@ -11,7 +11,7 @@
         </nav>
         
         <!-- Connexion / Déconnexion -->
-        <div v-if="userStore.user">
+        <div v-if="user">
           <button 
             @click="handleLogout" 
             class="border border-white text-white px-4 py-2 rounded hover:bg-white hover:text-gray-900 transition"
@@ -32,19 +32,34 @@
   </header>
 </template>
 
-<script setup>
+<script>
 import { useUserStore } from '@/stores/user';
-import { supabase } from '@/services/SupabaseClient'; // adapte ce chemin si besoin
+import { supabase } from '@/services/SupabaseClient'; 
 import { RouterLink } from 'vue-router';
 
-const userStore = useUserStore();
-
-const handleLogin = async () => {
-  await supabase.auth.signInWithOAuth({ provider: 'google' });
-};
-
-const handleLogout = async () => {
-  await supabase.auth.signOut();
-  userStore.user = null;
-};
+export default{
+  name :'AppHearder',
+  components:{
+    RouterLink
+  },
+  data(){
+    return{
+      userStore:useUserStore()
+    }
+  },
+  computed:{
+    user(){
+    return this.useStore.user
+  }
+},
+methods:{
+  async handleLogin(){
+    await supabase.auth.signWithAuth({ provider: 'google' })
+  },
+  async handleLogout(){
+    await supabase.auth.signOut()
+    this.useUserStore.setUser(null)
+  }
+}
+}
 </script>
