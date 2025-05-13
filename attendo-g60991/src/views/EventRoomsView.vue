@@ -1,67 +1,3 @@
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import Breadcrumb from '@/components/Breadcrumb.vue'
-import { fetchAllRooms } from '@/services/roomService'
-import { fetchUsedRooms, assignRoomToEvent } from '@/services/eventRomService'
-
-const route = useRoute()
-const router = useRouter()
-
-const eventId = route.params.id
-const eventLabel = route.query.label
-const session = route.query.session
-const ue = route.query.ue
-
-const allRooms = ref([])
-const usedRooms = ref([])
-const selectedRoom = ref('')
-const isLoading = ref(false)
-
-const availableRooms = computed(() =>
-  allRooms.value.filter(room => !usedRooms.value.includes(room.label))
-)
-
-onMounted(async () => {
-  allRooms.value = await fetchAllRooms()
-  usedRooms.value = await fetchUsedRooms(eventId)
-})
-
-const addRoom = async () => {
-  if (
-    !selectedRoom.value ||
-    isLoading.value ||
-    usedRooms.value.includes(selectedRoom.value)
-  ) return
-
-  isLoading.value = true
-  try {
-    await assignRoomToEvent(eventId, selectedRoom.value)
-    usedRooms.value.push(selectedRoom.value)
-    selectedRoom.value = ''
-  } catch (e) {
-    console.error('Erreur lors de l’ajout du local :', e)
-  } finally {
-    isLoading.value = false
-  }
-}
-const goToPresence = (roomLabel) => {
-  router.push({
-    name: 'PresenceView',
-    params: {
-      eventId,
-      roomId: roomLabel
-    },
-    query: {
-      room: roomLabel,
-      ue,
-      session
-    }
-  })
-}
-
-</script>
-
 <template>
   <div class="p-6">
     <Breadcrumb :items="[
@@ -109,3 +45,84 @@ const goToPresence = (roomLabel) => {
     </div>
   </div>
 </template>
+
+<script>
+import Breadcrumb from '@/components/Breadcrumb.vue'
+import { fetchAllRooms } from '@/services/roomService'
+import { fetchUsedRooms, assignRoomToEvent } from '@/services/eventRomService'
+
+export default {
+  name: 'EventRoomsView',
+  
+  components: {
+    Breadcrumb
+  },
+  
+  data() {
+    return {
+      eventId: this.$route.params.id,
+      eventLabel: this.$route.query.label,
+      session: this.$route.query.session,
+      ue: this.$route.query.ue,
+      allRooms: [],
+      usedRooms: [],
+      selectedRoom: '',
+      isLoading: false
+    }
+  },
+  
+  computed: {
+    availableRooms() {
+      return this.allRooms.filter(room => !this.usedRooms.includes(room.label))
+    }
+  },
+  
+  methods: {
+    async addRoom() {
+      if (
+        !this.selectedRoom ||
+        this.isLoading ||
+        this.usedRooms.includes(this.selectedRoom)
+      ) return
+
+      this.isLoading = true
+      try {
+        const result = await assignRoomToEvent(this.eventId, this.selectedRoom)
+        this.usedRooms.push(this.selectedRoom)
+        this.selectedRoom = ''
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout du local :', error)
+      } finally {
+        this.isLoading = false
+      }
+    },
+    
+    goToPresence(roomLabel) {
+      this.$router.push({
+        name: 'presenceView', 
+        params: {
+          eventId: this.eventId,
+          roomId: roomLabel
+        },
+        query: {
+          room: roomLabel,
+          ue: this.ue,
+          session: this.session
+        }
+      })
+    }
+  },
+  
+  async mounted() {
+    try {
+      const resultRooms = await fetchAllRooms()
+      this.allRooms = resultRooms
+      
+      const resultUsedRooms = await fetchUsedRooms(this.eventId)
+      this.usedRooms = resultUsedRooms
+    } catch (error) {
+      console.error('Erreur lors du chargement des données :', error)
+    }
+  }
+}
+</script>

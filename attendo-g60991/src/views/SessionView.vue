@@ -57,12 +57,10 @@ export default {
   },
   
   methods: {
-    // Redirection vers le détail d'une session
     goToSession(session) {
       this.$router.push(`/sessions/${session.id}`)
     },
     
-    // Chargement des sessions au démarrage
     async loadSessions() {
       try {
         const result = await fetchSessions()
@@ -72,7 +70,6 @@ export default {
       }
     },
     
-    // Ajout d'une nouvelle session
     async addSession() {
       const label = this.newSession.label.trim()
       if (!label) return
@@ -87,7 +84,6 @@ export default {
     }
   },
   
-  // Hook de cycle de vie
   mounted() {
     this.loadSessions()
   }
