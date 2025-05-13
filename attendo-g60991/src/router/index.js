@@ -27,25 +27,25 @@ const router = createRouter({
     },
     {
       path: '/sessions/:id',
-      name: 'SessionDetail',
+      name: 'sessionDetail',
       component: SessionDetailView,
       meta: { requiresAuth: true }
     },
     {
       path: '/session-compo/:id/events',
-      name: 'EventList',
+      name: 'eventList',
       component: EventView,
       meta: { requiresAuth: true }
     },
     {
       path: '/event/:id/rooms',
-      name: 'EventRooms',
+      name: 'eventRooms',
       component: () => import('@/views/EventRoomsView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/event/:eventId/room/:roomId/presence',
-      name: 'PresenceView',
+      name: 'presenceView',
       component: () => import('@/views/PresenceView.vue'),
       meta: { requiresAuth: true }
     }
@@ -55,13 +55,21 @@ const router = createRouter({
 
 // ✅ Protection des routes avec authentification
 router.beforeEach(async (to, from, next) => {
-  if (to.meta.requiresAuth) {
-    const { data } = await supabase.auth.getUser()
-    if (!data.user) {
-      return next('/')
+  try {
+    if (to.meta.requiresAuth) {
+      // Utilisation de "result" comme dans les exemples du PDF
+      const result = await supabase.auth.getUser()
+      
+      if (!result.data.user) {
+        console.log("Utilisateur non authentifié, redirection vers l'accueil")
+        return next('/')
+      }
     }
+    next()
+  } catch (error) {
+    console.error("Erreur lors de la vérification de l'authentification:", error)
+    return next('/')
   }
-  next()
 })
 
 export default router
