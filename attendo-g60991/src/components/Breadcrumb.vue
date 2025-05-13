@@ -13,7 +13,7 @@
         <template v-else>
           <span class="text-gray-600">{{ item.label }}</span>
         </template>
-        
+
         <!-- Séparateur -->
         <svg 
           v-if="index < items.length - 1" 
@@ -33,15 +33,17 @@
   </nav>
 </template>
 
-<script setup>
-defineProps({
-  items: {
-    type: Array,
+<script>
+export default{
+  name : 'Breadcrumb',
+  props: {
+    items: {
+      type: Array,
     required: true,
-    validator: (value) => {
-      // Chaque élément doit avoir une propriété label
+    validator(value) {
       return value.every(item => item.hasOwnProperty('label'));
     }
   }
-});
+}
+}
 </script>
