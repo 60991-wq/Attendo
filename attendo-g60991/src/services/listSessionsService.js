@@ -1,20 +1,33 @@
 import { supabase } from '@/supabase'
 
-export const fetchSessions = async () => {
-  const { data, error } = await supabase
-    .from('session')
-    .select('*')
-    .order('id', { ascending: true })
+export async function fetchSessions() {
+  try {
+    const result = await supabase
+      .from('session')
+      .select('*')
+      .order('id', { ascending: true })
+    
+    if (result.error) throw result.error
+    
+    return result.data
+  } catch (error) {
 
-  if (error) throw error
-  return data
+    console.error("Erreur lors de la récupération des sessions:", error)
+    throw error
+  }
 }
 
-export const createSession = async (session) => {
-    const { data, error } = await supabase
+export async function createSession(session) {
+  try {
+    const result = await supabase
       .from('session')
       .insert([session])
-  
-    if (error) throw error
-    return data
+    
+    if (result.error) throw result.error
+    
+    return result.data
+  } catch (error) {
+    console.error("Erreur lors de la création de la session:", error)
+    throw error
   }
+}
