@@ -19,7 +19,7 @@
       />
       <button
         @click="updateSupervisor"
-        class="bg-fuchsia-600 text-white px-4 py-1 rounded hover:bg-fuchsia-700"
+        class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100"
       >
         Définir le surveillant
       </button>
@@ -64,7 +64,6 @@ export default {
   },
   
   computed: {
-    // 🧭 Fil d'ariane
     breadcrumbItems() {
       return [
         { label: 'Accueil', link: '/' },

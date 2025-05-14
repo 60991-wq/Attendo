@@ -6,9 +6,9 @@
       { label: 'Sessions' }
     ]" />
 
-    <h2 class="text-xl font-bold mb-4">Sessions</h2>
+    <h2 class="text-xl font-bold mb-4 text-blue-800">Sessions</h2>
 
-    <!-- Table des sessions -->
+    <!-- Table des sessions - utilisez simplement le composant sans modifier ses styles -->
     <Table
       :headers="['Sessions']"
       :rows="sessions"
@@ -30,14 +30,13 @@
       </div>
       <button
         type="submit"
-        class="bg-fuchsia-600 text-white px-4 py-1 rounded hover:bg-fuchsia-700"
+        class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100"
       >
         Ajouter
       </button>
     </form>
   </div>
 </template>
-
 <script>
 import { fetchSessions, createSession } from '@/services/listSessionsService'
 import Breadcrumb from '@/components/Breadcrumb.vue'

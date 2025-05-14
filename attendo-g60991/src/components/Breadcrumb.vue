@@ -5,7 +5,7 @@
         <template v-if="item.link && index < items.length - 1">
           <router-link 
             :to="item.link" 
-            class="text-blue-500 hover:text-blue-700 hover:underline"
+            class="text-blue-500 hover:text-blue-900 hover:underline"
           >
             {{ item.label }}
           </router-link>

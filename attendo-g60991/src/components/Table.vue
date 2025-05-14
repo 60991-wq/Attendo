@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white shadow rounded overflow-hidden">
     <table class="w-full text-left">
-      <thead class="bg-gray-200 text-gray-700 text-sm uppercase">
+      <thead class="bg-gray-200 text-white text-sm uppercase">
         <tr>
           <th v-for="header in headers" :key="header" class="p-3">{{ header }}</th>
         </tr>
@@ -16,7 +16,7 @@
           <td
             v-for="key in columns"
             :key="key"
-            class="p-3 text-fuchsia-600 hover:underline"
+            class="p-3 text-blue-600 hover:underline"
           >
             {{ row[key] }}
           </td>

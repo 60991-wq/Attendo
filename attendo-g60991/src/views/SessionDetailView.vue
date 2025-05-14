@@ -8,29 +8,19 @@
     ]" />
 
     <h2 class="text-xl font-bold mb-4">
-      Session <span class="italic text-fuchsia-600">{{ sessionLabel }}</span>
+      <span class="text-blue-800">Session</span> <span class="italic text-blue-900">{{ sessionLabel }}</span>
     </h2>
 
     <!-- Table des UEs associées -->
-    <div class="bg-white shadow rounded overflow-hidden mb-8">
-      <table class="w-full text-left">
-        <thead class="bg-gray-200 text-gray-700 text-sm uppercase">
-          <tr>
-            <th class="p-3">UE</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="compo in sessionCompos"
-            :key="compo.id"
-            class="border-t hover:bg-gray-50 cursor-pointer"
-            @click="goToEvent(compo)"
-          >
-            <td class="p-3 text-fuchsia-600 hover:underline">{{ compo.ue }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <Table
+      :headers="['UE']"
+      :rows="sessionCompos"
+      :columns="['ue']"
+      textColor=""
+      :enableUnderline="false"
+      @row-click="goToEvent"
+      class="mb-8"
+    />
 
     <!-- Formulaire ajout UE -->
     <form @submit.prevent="addUE" class="bg-white shadow rounded p-4 flex items-center space-x-4 max-w-xl">
@@ -41,7 +31,7 @@
 
       <button
         type="submit"
-        class="bg-fuchsia-600 text-white px-4 py-1 rounded hover:bg-fuchsia-700"
+        class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100"
       >
         Ajouter
       </button>
@@ -51,6 +41,7 @@
 
 <script>
 import Breadcrumb from '@/components/Breadcrumb.vue'
+import Table from '@/components/Table.vue'  // Ajout de l'import manquant
 import {
   fetchSessionLabel,
   fetchSessionCompos,
@@ -60,7 +51,8 @@ import {
 
 export default {
   components: {
-    Breadcrumb
+    Breadcrumb,
+    Table  // Ajout du composant
   },
   
   data() {
@@ -113,7 +105,13 @@ export default {
       try {
         const sessionId = this.$route.params.id
         const result = await addUEToSession(sessionId, this.selectedUE)
-        this.sessionCompos.push(result)
+        
+        // Pour déboguer, affichons ce que retourne la fonction
+        console.log("Résultat de l'ajout:", result)
+        
+        // Force la réactivité en créant un nouveau tableau
+        this.sessionCompos = [...this.sessionCompos, result]
+        
         this.selectedUE = ''
       } catch (error) {
         console.error('Erreur lors de l\'ajout de l\'UE :', error)

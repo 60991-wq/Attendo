@@ -8,11 +8,11 @@
       { label: 'UE' }
     ]" />
 
-    <h2 class="text-xl font-bold mb-4">
-      Liste des épreuves de
-      <span class="text-fuchsia-600">{{ $route.query.ue }}</span>
-      <span class="text-sm italic">(session : {{ $route.query.session }})</span>
-    </h2>
+    <h2 class="text-xl font-bold mb-4 text-blue-400">
+     Liste des épreuves de
+     <span class="font-medium">{{ $route.query.ue }}</span>
+    <span class="text-italic">(session : {{ $route.query.session }})</span>
+</h2>
 
     <!-- Liste des épreuves -->
     <div class="flex flex-wrap gap-4 mb-6">
@@ -37,7 +37,7 @@
       />
       <button
         type="submit"
-        class="bg-fuchsia-600 text-white px-4 py-1 rounded hover:bg-fuchsia-700"
+        class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100"
       >
         Créer
       </button>
