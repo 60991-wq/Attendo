@@ -8,8 +8,8 @@
       { label: 'Épreuve' }
     ]" />
 
-    <h2 class="text-xl font-bold mb-6">
-      Liste des locaux pour <span class="text-fuchsia-600">{{ eventLabel }}</span>
+    <h2 class="text-xl font-bold mb-4 text-blue-900">
+      Liste des locaux pour <span class="text-blue-700">{{ eventLabel }}</span>
       <span class="text-sm italic"> - {{ ue }}</span>
     </h2>
 
@@ -25,7 +25,7 @@
       <button
         :disabled="isLoading"
         @click="addRoom"
-        class="bg-fuchsia-600 text-white px-4 py-1 rounded hover:bg-fuchsia-700 disabled:opacity-50"
+        class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100"
       >
         Ajouter
       </button>

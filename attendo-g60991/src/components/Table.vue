@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-white shadow rounded overflow-hidden">
+  <div class="bg-white shadow rounded overflow-hidden max-w-4xl mr-auto">
     <table class="w-full text-left">
-      <thead class="bg-gray-200 text-white text-sm uppercase">
+      <thead class="bg-black text-white text-sm uppercase">
         <tr>
           <th v-for="header in headers" :key="header" class="p-3">{{ header }}</th>
         </tr>

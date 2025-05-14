@@ -8,9 +8,9 @@
       { label: 'UE' }
     ]" />
 
-    <h2 class="text-xl font-bold mb-4 text-blue-400">
+    <h2 class="text-xl font-bold mb-4 text-blue-900">
      Liste des épreuves de
-     <span class="font-medium">{{ $route.query.ue }}</span>
+     <span class="font-medium text-blue-700">{{ $route.query.ue }}</span>
     <span class="text-italic">(session : {{ $route.query.session }})</span>
 </h2>
 
@@ -27,21 +27,21 @@
     </div>
 
     <!-- Ajout d'une épreuve -->
-    <form @submit.prevent="addEvent" class="bg-white shadow rounded p-4 flex items-center space-x-4 max-w-xl">
-      <label class="text-gray-600">Intitulé :</label>
-      <input
+    <form @submit.prevent="addEvent" class="bg-white shadow rounded p-4 flex flex-nowrap items-center space-x-4 max-w-xl">
+  <label class="text-gray-600 whitespace-nowrap">Intitulé :</label>
+     <input
         v-model="newEventLabel"
         type="text"
-        placeholder="bilan, projet, examen..."
-        class="border rounded px-3 py-1 w-full"
-      />
-      <button
-        type="submit"
-        class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100"
-      >
-        Créer
-      </button>
-    </form>
+       placeholder="bilan, projet, examen..."
+    class="border rounded px-3 py-1 flex-grow min-w-0"
+   />
+  <button
+    type="submit"
+    class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100 whitespace-nowrap"
+  >
+    Créer
+  </button>
+</form>
   </div>
 </template>
 
