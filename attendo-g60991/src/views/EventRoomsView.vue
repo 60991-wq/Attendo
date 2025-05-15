@@ -35,6 +35,17 @@
   >
     <div class="font-semibold text-blue-800 text-center">{{ room.room }}</div>
     <div class="text-xs text-gray-500 text-center mt-1">
+      <div class="text-xs text-gray-500 text-center mt-1">
+  Présents :
+  <span class="text-black font-medium">
+    {{ roomStats[room.room]?.present || 0 }}
+  </span>
+  /
+  <span>
+    {{ roomStats[room.room]?.capacity || '?' }}
+  </span>
+</div>
+
       Surveillant :
       <span :class="room.supervisor ? 'text-black font-medium' : 'italic text-gray-400'">
         {{ room.supervisor || 'Non défini' }}
@@ -51,6 +62,7 @@ import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchAllRooms } from '@/services/roomService'
 import { fetchUsedRooms, assignRoomToEvent } from '@/services/eventRomService'
 import AddForm from '@/components/AddForm.vue'
+import { supabase } from '@/supabase'
 
 export default {
   name: 'EventRoomsView',
@@ -71,7 +83,8 @@ export default {
     allRooms: [],
     usedRooms: [],
     selectedRoom: '',
-    isLoading: false
+    isLoading: false,
+    roomStats: {}
   }
 },
 
@@ -113,7 +126,9 @@ export default {
   try {
     await assignRoomToEvent(this.eventId, this.selectedRoom)
 
-    this.usedRooms.push({ room: this.selectedRoom, supervisor: null })
+    this.usedRooms = await fetchUsedRooms(this.eventId)
+    await this.loadRoomStats()
+
     this.selectedRoom = ''
   } catch (error) {
     console.error('Erreur lors de l\'ajout du local :', error)
@@ -121,6 +136,37 @@ export default {
     this.isLoading = false
   }
 },
+
+  async loadRoomStats() {
+    for (const room of this.usedRooms) {
+      try {
+        const { data: roomInfo } = await supabase
+          .from('room')
+          .select('capacity')
+          .eq('label',String(room.room))
+          .single()
+
+        const { data: examRoom } = await supabase
+          .from('examination_room')
+          .select('id')
+          .eq('event', this.eventId)
+          .eq('room', room.room)
+          .single()
+
+        const { count } = await supabase
+          .from('examination')
+          .select('*', { count: 'exact', head: true })
+          .eq('examination_room', examRoom.id)
+
+        this.roomStats[room.room] = {
+          capacity: roomInfo?.capacity ?? '?',
+          present: count ?? 0
+        }
+      } catch (error) {
+        console.error(`Erreur chargement stats pour ${room.room}:`, error)
+      }
+    }
+  },
 
     
     goToPresence(roomLabel) {
@@ -148,9 +194,11 @@ export default {
       
       const resultUsedRooms = await fetchUsedRooms(this.eventId)
       this.usedRooms = resultUsedRooms
+       await this.loadRoomStats() 
     } catch (error) {
       console.error('Erreur lors du chargement des données :', error)
     }
   }
+  
 }
 </script>
