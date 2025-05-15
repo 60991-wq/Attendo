@@ -1,101 +1,127 @@
 <template>
-  <div class="p-6">
-    <Breadcrumb :items="[
-      { label: 'Accueil', link: '/' },
-      { label: 'Sessions', link: '/sessions' },
-      { label: 'Session', link: `/sessions/${session}` },
-      { label: 'UE' },
-      { label: 'Épreuve' }
-    ]" />
+  <div class="w-full px-6 mt-0">
+    <Breadcrumb :items="breadcrumbItems" />
 
-    <h2 class="text-xl font-bold mb-4 text-blue-900">
+    <h2 class="text-xl font-bold mb-4 mt-4 text-blue-800">
       Liste des locaux pour <span class="text-blue-700">{{ eventLabel }}</span>
       <span class="text-sm italic"> - {{ ue }}</span>
     </h2>
 
-    <!-- Formulaire ajout -->
-    <div class="bg-white shadow rounded p-4 flex items-center space-x-4 max-w-xl mb-6">
-      <label class="text-gray-600">Local</label>
+    <AddForm
+      v-model="selectedRoom"
+      icon="🏫"
+      submitLabel="Ajouter"
+      @submit="addRoom"
+    >
       <select v-model="selectedRoom" class="border px-3 py-1 rounded w-full">
         <option disabled value="">Choisissez un local</option>
         <option v-for="room in availableRooms" :key="room.label" :value="room.label">
           {{ room.label }}
         </option>
       </select>
-      <button
-        :disabled="isLoading"
-        @click="addRoom"
-        class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100"
-      >
-        Ajouter
-      </button>
+    </AddForm>
+    
+    <div v-if="usedRooms.length === 0" class="text-gray-600 italic mt-4">
+      Aucun local n'a encore été assigné à cette épreuve.
     </div>
 
-    <!-- Locaux assignés cliquables -->
-    <div class="flex flex-wrap gap-4">
-      <div
-        v-for="label in usedRooms"
-        :key="label"
-        class="bg-white p-4 border rounded shadow text-center min-w-[120px] cursor-pointer hover:bg-gray-100"
-        @click="goToPresence(label)"
-      >
-        <div class="text-xl font-bold text-blue-900">{{ label }}</div>
-        <div class="text-sm text-gray-500 mt-1">Surveillant : -</div>
-      </div>
+
+<div v-else class="flex flex-wrap gap-3 mt-4">
+  <div
+    v-for="room in usedRooms"
+    :key="room.room"
+    class="border rounded-md px-4 py-2 shadow-sm hover:shadow transition cursor-pointer bg-white text-sm min-w-[100px]"
+    @click="goToPresence(room.room)"
+  >
+    <div class="font-semibold text-blue-800 text-center">{{ room.room }}</div>
+    <div class="text-xs text-gray-500 text-center mt-1">
+      Surveillant :
+      <span :class="room.supervisor ? 'text-black font-medium' : 'italic text-gray-400'">
+        {{ room.supervisor || 'Non défini' }}
+      </span>
     </div>
   </div>
+</div>
+
+</div>
 </template>
 
 <script>
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchAllRooms } from '@/services/roomService'
 import { fetchUsedRooms, assignRoomToEvent } from '@/services/eventRomService'
+import AddForm from '@/components/AddForm.vue'
 
 export default {
   name: 'EventRoomsView',
   
   components: {
-    Breadcrumb
+    Breadcrumb,
+    AddForm
   },
   
   data() {
-    return {
-      eventId: this.$route.params.id,
-      eventLabel: this.$route.query.label,
-      session: this.$route.query.session,
-      ue: this.$route.query.ue,
-      allRooms: [],
-      usedRooms: [],
-      selectedRoom: '',
-      isLoading: false
-    }
-  },
+  return {
+    eventId: this.$route.params.id || this.$route.query.eventId,
+    eventLabel: this.$route.query.label,
+    session: this.$route.query.session,
+    ue: this.$route.query.ue,
+    sessionCompoId: this.$route.query.sessionCompoId,
+
+    allRooms: [],
+    usedRooms: [],
+    selectedRoom: '',
+    isLoading: false
+  }
+},
+
   
   computed: {
+   breadcrumbItems() {
+  return [
+    { label: 'Accueil', link: '/' },
+    { label: 'Sessions', link: '/sessions' },
+    { label: 'Session', link: `/sessions/${this.session}` },
+    {
+      label: 'UE',
+      link: `/session-compo/${this.sessionCompoId}/events?ue=${this.ue}&session=${this.session}`
+    },
+    {
+      label: 'Épreuve',
+      link: `/event/${this.eventId}/rooms?ue=${this.ue}&session=${this.session}&sessionCompoId=${this.sessionCompoId}`
+    }
+  ]
+},
+
+
     availableRooms() {
-      return this.allRooms.filter(room => !this.usedRooms.includes(room.label))
+      return this.allRooms.filter(
+        room => !this.usedRooms.some(used => used.room === room.label)
+      )
     }
   },
-  
+
   methods: {
     async addRoom() {
-      if (
-        !this.selectedRoom ||
-        this.isLoading ||
-        this.usedRooms.includes(this.selectedRoom)
-      ) return
+  if (
+    !this.selectedRoom ||
+    this.isLoading ||
+    this.usedRooms.some(r => r.room === this.selectedRoom)
+  ) return
 
-      this.isLoading = true
-      try {
-        const result = await assignRoomToEvent(this.eventId, this.selectedRoom)
-        this.usedRooms.push(this.selectedRoom)
-        this.selectedRoom = ''
-      } catch (error) {
-        console.error('Erreur lors de l\'ajout du local :', error)
-      } finally {
-        this.isLoading = false
-      }
-    },
+  this.isLoading = true
+  try {
+    await assignRoomToEvent(this.eventId, this.selectedRoom)
+
+    this.usedRooms.push({ room: this.selectedRoom, supervisor: null })
+    this.selectedRoom = ''
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout du local :', error)
+  } finally {
+    this.isLoading = false
+  }
+},
+
     
     goToPresence(roomLabel) {
       this.$router.push({
@@ -107,7 +133,9 @@ export default {
         query: {
           room: roomLabel,
           ue: this.ue,
-          session: this.session
+          session: this.session,
+          label: this.eventLabel,
+          sessionCompoId: this.sessionCompoId
         }
       })
     }

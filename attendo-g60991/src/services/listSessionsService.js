@@ -16,16 +16,17 @@ export async function fetchSessions() {
     throw error
   }
 }
-
 export async function createSession(session) {
   try {
     const result = await supabase
       .from('session')
       .insert([session])
+      .select() // Ajouter cette ligne pour récupérer les données insérées
     
     if (result.error) throw result.error
     
-    return result.data
+    // Retourner le premier élément inséré (il n'y en a qu'un dans ce cas)
+    return result.data[0]
   } catch (error) {
     console.error("Erreur lors de la création de la session:", error)
     throw error

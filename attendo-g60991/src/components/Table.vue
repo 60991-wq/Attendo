@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white shadow rounded overflow-hidden max-w-4xl mr-auto">
+  <div class="bg-white shadow rounded-lg overflow-hidden max-w-6xl mr-auto">
     <table class="w-full text-left">
       <thead class="bg-black text-white text-sm uppercase">
         <tr>
@@ -10,15 +10,15 @@
         <tr
           v-for="(row, index) in rows"
           :key="index"
-          :class="['border-t hover:bg-gray-50 cursor-pointer', { 'bg-blue-100': row.present }]"
-          @click="$emit('row-click', row)"
+          :class="['border-t hover:bg-gray-50 cursor-pointer', { 'bg-blue-100': row && row.present }]"
+          @click="handleRowClick(row)"
         >
           <td
             v-for="key in columns"
             :key="key"
             class="p-3 text-blue-600 hover:underline"
           >
-            {{ row[key] }}
+            {{ row && row[key] }}
           </td>
         </tr>
       </tbody>
@@ -35,11 +35,19 @@ export default {
     },
     rows: {
       type: Array,
-      required: true
+      required: true,
+      default: () => []
     },
     columns: {
       type: Array,
       required: true
+    }
+  },
+  methods: {
+    handleRowClick(row) {
+      if (row) {
+        this.$emit('row-click', row);
+      }
     }
   },
   emits: ['row-click']

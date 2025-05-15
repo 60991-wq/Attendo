@@ -3,14 +3,13 @@
     <div class="container mx-auto flex justify-between items-center">
       <h1 class="text-2xl font-bold text-purple-400">Attendo</h1>
       <div class="flex items-center space-x-6">
-        <!-- Menu de navigation -->
+
         <nav class="space-x-4">
           <RouterLink to="/" class="hover:underline">Accueil</RouterLink>
           <RouterLink to="/sessions" class="hover:underline">Sessions</RouterLink>
           <RouterLink to="/about" class="hover:underline">À propos</RouterLink>
         </nav>
         
-        <!-- Connexion / Déconnexion -->
         <div v-if="user">
           <button 
             @click="handleLogout" 

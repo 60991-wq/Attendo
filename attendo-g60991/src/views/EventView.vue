@@ -1,21 +1,19 @@
 <template>
-  <div class="w-full px-6 mt-6">
-    <!-- Fil d'Ariane -->
-    <Breadcrumb :items="[
-      { label: 'Accueil', link: '/' },
-      { label: 'Sessions', link: '/sessions' },
-      { label: 'Session', link: `/sessions/${$route.query.session}` },
-      { label: 'UE' }
-    ]" />
+  <div class="w-full px-6 mt-0">
+       <Breadcrumb :items="breadcrumbItems" />
 
-    <h2 class="text-xl font-bold mb-4 text-blue-900">
-     Liste des épreuves de
-     <span class="font-medium text-blue-700">{{ $route.query.ue }}</span>
-    <span class="text-italic">(session : {{ $route.query.session }})</span>
-</h2>
+    <h2 class="text-xl font-bold mb-4 mt-4 text-blue-800">
+      Liste des épreuves de
+      <span class="font-medium text-blue-700">{{ $route.query.ue }}</span>
+      <span class="italic text-blue-600">(session : {{ sessionLabel }})</span>
+    </h2>
 
-    <!-- Liste des épreuves -->
-    <div class="flex flex-wrap gap-4 mb-6">
+    <div v-if="events.length === 0" class="text-gray-600 italic mb-4">
+      Aucune épreuve n’a encore été ajoutée pour cette UE.
+    </div>
+
+    
+    <div v-if="events.length > 0" class="flex flex-wrap gap-4 mb-6">
       <div
         v-for="event in events"
         :key="event.id"
@@ -26,44 +24,56 @@
       </div>
     </div>
 
-    <!-- Ajout d'une épreuve -->
-    <form @submit.prevent="addEvent" class="bg-white shadow rounded p-4 flex flex-nowrap items-center space-x-4 max-w-xl">
-  <label class="text-gray-600 whitespace-nowrap">Intitulé :</label>
-     <input
-        v-model="newEventLabel"
-        type="text"
-       placeholder="bilan, projet, examen..."
-    class="border rounded px-3 py-1 flex-grow min-w-0"
-   />
-  <button
-    type="submit"
-    class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100 whitespace-nowrap"
-  >
-    Créer
-  </button>
-</form>
+    <AddForm
+      v-model="newEventLabel"
+      icon="📝"
+      placeholder="bilan, projet, examen..."
+      submitLabel="Créer"
+      @submit="addEvent"
+    />
   </div>
 </template>
+
 
 <script>
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchEvents, createEvent } from '@/services/eventService'
+import AddForm from '@/components/AddForm.vue'
+import { fetchSessionLabel } from '@/services/SessionDetailView'
+import { supabase } from '@/supabase'
 
 export default {
   name: 'EventView',
-  
+
   components: {
-    Breadcrumb
+    Breadcrumb,
+    AddForm
   },
-  
+
   data() {
     return {
-      sessionCompoId: this.$route.params.id,
+       sessionCompoId: this.$route.params.id || this.$route.query.sessionCompoId,
       events: [],
-      newEventLabel: ''
+      newEventLabel: '',
+      sessionLabel: ''
     }
   },
-  
+
+  computed: {
+    breadcrumbItems() {
+      return [
+        { label: 'Accueil', link: '/' },
+        { label: 'Sessions', link: '/sessions' },
+        { label: 'Session', link: `/sessions/${this.$route.query.session}` },
+        {
+          label: 'UE',
+          link: `/session-compo/${this.$route.query.sessionCompoId || this.sessionCompoId}/events?ue=${this.$route.query.ue}&session=${this.$route.query.session}`
+
+        }
+      ]
+    }
+  },
+
   methods: {
     goToRooms(event) {
       this.$router.push({
@@ -72,11 +82,12 @@ export default {
         query: {
           label: event.label,
           ue: this.$route.query.ue,
-          session: this.$route.query.session
+          session: this.$route.query.session,
+          sessionCompoId: this.sessionCompoId
         }
       })
     },
-    
+
     async loadEvents() {
       try {
         const result = await fetchEvents(this.sessionCompoId)
@@ -85,10 +96,10 @@ export default {
         console.error('Erreur chargement events :', error)
       }
     },
-    
+
     async addEvent() {
       if (!this.newEventLabel.trim()) return
-      
+
       try {
         const result = await createEvent(this.sessionCompoId, this.newEventLabel)
         this.events.push(result)
@@ -96,11 +107,22 @@ export default {
       } catch (error) {
         console.error('Erreur création épreuve :', error)
       }
+    },
+
+    async loadSessionLabel() {
+      try {
+        const label = await fetchSessionLabel(parseInt(this.$route.query.session))
+        this.sessionLabel = label
+      } catch (error) {
+        console.error('Erreur récupération label session :', error)
+        this.sessionLabel = '[inconnue]'
+      }
     }
   },
-  
+
   mounted() {
     this.loadEvents()
+    this.loadSessionLabel()
   }
 }
 </script>

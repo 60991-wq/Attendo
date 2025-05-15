@@ -1,14 +1,12 @@
 <template>
-  <div class="w-full px-6 mt-6">
-    <!-- Fil d'Ariane -->
-    <Breadcrumb :items="[
+  <div class="w-full px-6 mt-0">
+
+<Breadcrumb :items="[
       { label: 'Accueil', link: '/' },
       { label: 'Sessions' }
     ]" />
 
-    <h2 class="text-xl font-bold mb-4 text-blue-800">Sessions</h2>
-
-    <!-- Table des sessions - utilisez simplement le composant sans modifier ses styles -->
+    <h2 class="text-xl font-bold mb-4 mt-4 text-blue-800">Sessions</h2>
     <Table
       :headers="['Sessions']"
       :rows="sessions"
@@ -17,35 +15,27 @@
       class="mb-8"
     />
 
-    <!-- Formulaire d'ajout -->
-    <form @submit.prevent="addSession" class="bg-white shadow rounded p-4 flex items-center space-x-4 w-full max-w-xl">
-      <div class="flex items-center space-x-2 flex-grow">
-        <span class="text-xl">👥</span>
-        <input
-          v-model="newSession.label"
-          type="text"
-          placeholder="Nouvelle session"
-          class="border rounded px-3 py-1 w-full"
-        />
-      </div>
-      <button
-        type="submit"
-        class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100"
-      >
-        Ajouter
-      </button>
-    </form>
+    <AddForm
+      v-model="newSession.label"
+      icon="👥"
+      placeholder="Nouvelle session"
+      submitLabel="Ajouter"
+      @submit="addSession"
+    />
   </div>
 </template>
+
 <script>
 import { fetchSessions, createSession } from '@/services/listSessionsService'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import Table from '@/components/Table.vue'
+import AddForm from '@/components/AddForm.vue'
 
 export default {
   components: {
     Breadcrumb,
-    Table
+    Table,
+    AddForm
   },
   
   data() {
@@ -75,8 +65,13 @@ export default {
       
       try {
         const result = await createSession({ label })
-        this.sessions.push(result)
+        
+        this.sessions = [...this.sessions, result]
+        
+        
         this.newSession.label = ''
+        
+        console.log('Session ajoutée avec succès:', result)
       } catch (error) {
         console.error('Erreur lors de l\'ajout :', error)
       }

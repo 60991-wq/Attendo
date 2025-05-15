@@ -1,21 +1,18 @@
 <template>
   <div class="min-h-screen bg-white text-gray-800">
-    <!-- Header avec le titre centré -->
+
     <header class="bg-black text-white py-4 text-center">
       <h1 class="text-3xl font-bold text-fuchsia-500">Attendo</h1>
     </header>
 
-    <!-- Barre de navigation -->
     <nav class="bg-gray-100 border-b">
       <div class="container mx-auto px-6 py-2 flex justify-between items-center">
-        <!-- Menu gauche -->
         <div class="space-x-6 text-sm">
           <RouterLink to="/" class="hover:text-fuchsia-600" :class="{ 'text-fuchsia-600': $route.path === '/' }">Accueil</RouterLink>
           <RouterLink to="/sessions" class="hover:text-fuchsia-600" :class="{ 'text-fuchsia-600': $route.path.startsWith('/sessions') }">Sessions</RouterLink>
           <RouterLink to="/about" class="hover:text-fuchsia-600" :class="{ 'text-fuchsia-600': $route.path === '/about' }">À propos</RouterLink>
         </div>
 
-        <!-- Connexion / Déconnexion -->
         <div class="flex items-center space-x-2 text-sm">
           <span v-if="userStore.user">{{ userStore.user.email }}</span>
           <button
@@ -36,12 +33,10 @@
       </div>
     </nav>
 
-    <!-- Loader pendant chargement -->
     <div v-if="userStore.isLoadingUser" class="fixed inset-0 bg-white/50 flex items-center justify-center z-50">
       <div class="animate-spin h-10 w-10 border-4 border-fuchsia-500 border-t-transparent rounded-full"></div>
     </div>
 
-    <!-- Contenu principal -->
     <main class="p-6">
       <RouterView />
     </main>
@@ -50,7 +45,7 @@
 
 <script>
 import { useUserStore } from '@/stores/user'
-import { supabase } from '@/services/SupabaseClient'
+import { supabase } from '@/supabase'
 import { RouterLink, RouterView } from 'vue-router'
 
 export default {

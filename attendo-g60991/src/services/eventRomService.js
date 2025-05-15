@@ -4,12 +4,12 @@ export async function fetchUsedRooms(eventId) {
   try {
     const result = await supabase
       .from('examination_room')
-      .select('room')
+      .select('room, supervisor')
       .eq('event', eventId)
 
     if (result.error) throw result.error
     
-    return result.data.map(r => r.room)
+    return result.data
   } catch (error) {
 
     console.error("Erreur lors de la récupération des locaux utilisés:", error)

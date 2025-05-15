@@ -14,7 +14,6 @@
           <span class="text-gray-600">{{ item.label }}</span>
         </template>
 
-        <!-- Séparateur -->
         <svg 
           v-if="index < items.length - 1" 
           class="ml-2 h-4 w-4 text-gray-400" 

@@ -26,7 +26,7 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/sessions/:id',
+      path: '/sessions/:id', 
       name: 'sessionDetail',
       component: SessionDetailView,
       meta: { requiresAuth: true }
@@ -49,17 +49,13 @@ const router = createRouter({
       component: () => import('@/views/PresenceView.vue'),
       meta: { requiresAuth: true }
     }
-    
   ]
 })
 
-// ✅ Protection des routes avec authentification
 router.beforeEach(async (to, from, next) => {
   try {
     if (to.meta.requiresAuth) {
-      // Utilisation de "result" comme dans les exemples du PDF
       const result = await supabase.auth.getUser()
-      
       if (!result.data.user) {
         console.log("Utilisateur non authentifié, redirection vers l'accueil")
         return next('/')

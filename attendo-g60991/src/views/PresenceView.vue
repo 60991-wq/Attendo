@@ -1,31 +1,22 @@
 <template>
-  <div class="p-6">
-    <!-- Fil d'Ariane -->
-    <Breadcrumb :items="breadcrumbItems" />
+  <div class="w-full px-6 mt-0">
 
-    <!-- Titre -->
+  <Breadcrumb :items="breadcrumbItems" />
+
     <h2 class="text-xl font-bold mb-2">
       Prise de présence pour le local {{ room }}
       <span v-if="supervisor">par {{ supervisor.toUpperCase() }}</span>
     </h2>
 
-    <!-- Choix surveillant -->
-    <div class="flex items-center gap-4 mb-6">
-      <label class="text-gray-600">Surveillant</label>
-      <input
-        v-model="inputSupervisor"
-        class="border px-3 py-1 rounded w-full max-w-xs"
-        placeholder="Nom ou acronyme"
-      />
-      <button
-        @click="updateSupervisor"
-        class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100"
-      >
-        Définir le surveillant
-      </button>
-    </div>
+    <AddForm
+      v-model="inputSupervisor"
+      icon="🧑‍🏫"
+      placeholder="Nom ou acronyme"
+      submitLabel="Définir le surveillant"
+      @submit="updateSupervisor"
+      class="mb-6"
+    />
 
-    <!-- Tableau étudiants -->
     <Table
       :headers="['MATRICULE', 'GROUPE', 'NOM', 'PRÉNOM']"
       :columns="['matricule', 'group', 'nom', 'prénom']"
@@ -40,41 +31,57 @@ import Table from '@/components/Table.vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchStudentsForRoomPresence } from '@/services/studentService'
 import { supabase } from '@/supabase'
+import AddForm from '@/components/AddForm.vue'
 
 export default {
   name: 'PresenceView',
   
   components: {
     Table,
-    Breadcrumb
+    Breadcrumb, 
+    AddForm
   },
   
   data() {
-    return {
-      eventId: this.$route.params.eventId,
-      ue: this.$route.query.ue,
-      room: this.$route.query.room,
-      session: this.$route.query.session,
-      
-      // ✅ Données réactives
-      students: [],
-      supervisor: '',             
-      inputSupervisor: ''         
-    }
-  },
-  
+  return {
+    eventId: this.$route.params.eventId || this.$route.query.eventId,
+    ue: this.$route.query.ue,
+    room: this.$route.query.room,
+    session: this.$route.query.session,
+    sessionCompoId: this.$route.query.sessionCompoId || this.$route.params.sessionCompoId,
+    students: [],
+    supervisor: '',
+    inputSupervisor: ''
+  }
+},
+
   computed: {
-    breadcrumbItems() {
-      return [
-        { label: 'Accueil', link: '/' },
-        { label: 'Sessions', link: '/sessions' },
-        { label: 'Session', link: `/sessions/${this.session}` },
-        { label: 'UE', link: `/sessions/${this.session}/ue/${this.ue}` },
-        { label: 'Épreuve', link: `/sessions/${this.session}/ue/${this.ue}/exam` },
-        { label: 'Local' }
-      ]
-    }
+  sessionId() {
+    return parseInt(this.session)
   },
+  breadcrumbItems() {
+    const ue = this.ue || '[UE inconnue]'
+    const sessionId = this.sessionId || '[session inconnue]'
+    const sessionCompoId = this.sessionCompoId || '[id manquant]'
+    const eventId = this.eventId || '[event manquant]'
+
+    return [
+      { label: 'Accueil', link: '/' },
+      { label: 'Sessions', link: '/sessions' },
+      { label: 'Session', link: `/sessions/${sessionId}` },
+      { 
+        label: 'UE',
+        link: `/session-compo/${sessionCompoId}/events?ue=${ue}&session=${sessionId}`
+      },
+      { 
+        label: 'Épreuve', 
+        link: `/event/${eventId}/rooms?ue=${ue}&session=${sessionId}&sessionCompoId=${sessionCompoId}`
+      },
+      { label: 'Local' }
+    ]
+  }
+},
+
   
   methods: {
     async fetchSupervisor() {
@@ -94,53 +101,45 @@ export default {
       }
     },
     
-    async updateSupervisor() {
-      const value = this.inputSupervisor.trim()
-      if (!value) return
+   async updateSupervisor() {
+  let value = this.inputSupervisor.trim()
+  if (!value) return
 
-      try {
-        const existingResult = await supabase
-          .from('examination_room')
-          .select('id')
-          .eq('event', this.eventId)
-          .eq('room', this.room)
-          .single()
+  try {
+    value = value.toUpperCase()
 
-        if (existingResult.error) {
-          console.error('Erreur récupération examination_room :', existingResult.error)
-          return
-        }
+    const existingResult = await supabase
+      .from('examination_room')
+      .select('id')
+      .eq('event', this.eventId)
+      .eq('room', this.room)
+      .single()
 
-        if (existingResult.data) {
-          const updateResult = await supabase
-            .from('examination_room')
-            .update({ supervisor: value })
-            .eq('id', existingResult.data.id)
+    if (existingResult.error) {
+      console.error('Erreur récupération examination_room :', existingResult.error)
+      return
+    }
 
-          if (updateResult.error) {
-            console.error('Erreur mise à jour surveillant :', updateResult.error)
-          } else {
-            alert('Surveillant mis à jour avec succès.')
-            this.inputSupervisor = ''     
-            await this.fetchSupervisor() 
-          }
-        } else {
-          const insertResult = await supabase
-            .from('examination_room')
-            .insert({ event: this.eventId, room: this.room, supervisor: value })
+    if (existingResult.data) {
+      await supabase
+        .from('examination_room')
+        .update({ supervisor: value })
+        .eq('id', existingResult.data.id)
+    } else {
+      await supabase
+        .from('examination_room')
+        .insert({ event: this.eventId, room: this.room, supervisor: value })
+    }
 
-          if (insertResult.error) {
-            console.error('Erreur insertion surveillant :', insertResult.error)
-          } else {
-            alert('Surveillant défini avec succès.')
-            this.inputSupervisor = ''     
-            await this.fetchSupervisor()  
-          }
-        }
-      } catch (error) {
-        console.error('Erreur lors de la mise à jour du surveillant:', error)
-      }
-    },
+    this.inputSupervisor = ''
+    await this.fetchSupervisor()
+
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du surveillant:', error)
+  }
+},
+
+
     
     async togglePresence(student) {
       try {
@@ -196,9 +195,15 @@ export default {
     }
   },
   
-  // 📦 Chargement initial
   mounted() {
-    this.loadInitialData()
+  if (!this.eventId || !this.room || !this.ue || !this.sessionCompoId) {
+    alert("Paramètres requis manquants. Redirection...");
+    this.$router.push("/sessions");
+    return;
   }
+
+  this.loadInitialData();
+}
+
 }
 </script>
