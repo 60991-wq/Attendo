@@ -19,6 +19,7 @@ export default {
     const userStore = useUserStore()
     userStore.loadUser()
     userStore.setupAuthListener()
+
   }
 }
 </script>

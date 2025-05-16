@@ -50,7 +50,7 @@ export default {
       this.signInWithGoogle()
     },
     handleLogout() {
-      this.signOut()
+      this.signOut(this.$router)
     }
   }
 }

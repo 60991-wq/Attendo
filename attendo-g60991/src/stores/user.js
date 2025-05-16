@@ -37,6 +37,8 @@ export const useUserStore = defineStore('user', {
         setupAuthListener() {
             supabase.auth.onAuthStateChange((_event, session) => {
                 this.user = session?.user ?? null
+
+
             })
         }
     }
