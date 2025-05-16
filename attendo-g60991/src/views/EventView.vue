@@ -12,7 +12,7 @@
       Aucune épreuve n’a encore été ajoutée pour cette UE.
     </div>
 
-    
+
     <div v-if="events.length > 0" class="flex flex-wrap gap-4 mb-6">
       <div
         v-for="event in events"
@@ -40,7 +40,6 @@ import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchEvents, createEvent } from '@/services/eventService'
 import AddForm from '@/components/AddForm.vue'
 import { fetchSessionLabel } from '@/services/SessionDetailView'
-import { supabase } from '@/supabase'
 
 export default {
   name: 'EventView',
@@ -90,8 +89,7 @@ export default {
 
     async loadEvents() {
       try {
-        const result = await fetchEvents(this.sessionCompoId)
-        this.events = result
+         this.events = await fetchEvents(this.sessionCompoId)
       } catch (error) {
         console.error('Erreur chargement events :', error)
       }

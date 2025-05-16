@@ -13,7 +13,7 @@ export async function fetchSessionLabel(sessionId) {
     return data.label
   } catch (error) {
     console.error("Erreur lors du chargement du label de session:", error)
-    throw error 
+    throw error
   }
 }
 
@@ -22,7 +22,7 @@ export async function fetchSessionCompos(sessionId) {
   try {
     const { data, error } = await supabase
       .from('session_compo')
-      .select('id, ue')  
+      .select('id, ue')
       .eq('session', sessionId)
 
     if (error) throw error
@@ -57,7 +57,7 @@ export async function addUEToSession(sessionId, ueLabel) {
       .select()
 
     if (error) throw error
-    return data[0]  // ✅ retourne bien l'objet { id, session, ue }
+    return data[0]
   } catch (error) {
     console.error("Erreur lors de l'ajout de l'UE à la session:", error)
     throw error

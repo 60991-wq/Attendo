@@ -28,6 +28,7 @@
 
 <script>
 export default {
+  name: 'DataTable',
   props: {
     headers: {
       type: Array,

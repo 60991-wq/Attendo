@@ -4,14 +4,15 @@
     <Breadcrumb :items="breadcrumbItems" />
 
     <h2 class="text-xl font-bold mb-3 mt-3">
-      <span class="text-blue-800">Session</span> <span class="italic text-blue-900">{{ sessionLabel }}</span>
+      <span class="text-blue-800">Session</span>
+      <span class="italic text-blue-900">{{ sessionLabel }}</span>
     </h2>
 
     <div v-if="sessionCompos.length === 0" class="text-gray-600 italic mb-4">
       Aucune UE n’a encore été ajoutée à cette session.
     </div>
 
-    <Table
+    <DataTable
       :headers="['UE']"
       :rows="sessionCompos"
       :columns="['ue']"
@@ -38,7 +39,7 @@
 <script>
 import AddForm from '@/components/AddForm.vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
-import Table from '@/components/Table.vue'
+import DataTable from '@/components/DataTable.vue'
 import {
   fetchSessionLabel,
   fetchSessionCompos,
@@ -49,7 +50,7 @@ import {
 export default {
   components: {
     Breadcrumb,
-    Table,
+    DataTable,
     AddForm
   },
 
@@ -85,7 +86,7 @@ export default {
         params: { id: compo.id },
         query: {
           ue: compo.ue,
-          session: this.sessionId 
+          session: this.sessionId
         }
       })
     },

@@ -1,8 +1,5 @@
 import { supabase } from '@/supabase'
 
-/**
- * Récupère tous les événements pour une session composée donnée
- */
 export async function fetchEvents(sessionCompoId) {
   try {
     const result = await supabase
@@ -11,9 +8,9 @@ export async function fetchEvents(sessionCompoId) {
       .eq('session_compo', sessionCompoId)
       .order('id')
 
-  
+
     if (result.error) throw result.error
-    
+
     return result.data
   } catch (error) {
     console.error("Erreur lors de la récupération des événements:", error)
@@ -21,9 +18,7 @@ export async function fetchEvents(sessionCompoId) {
   }
 }
 
-/**
- * Crée un nouvel événement dans une session composée
- */
+
 export async function createEvent(sessionCompoId, label) {
   try {
     const result = await supabase
@@ -39,9 +34,7 @@ export async function createEvent(sessionCompoId, label) {
   }
 }
 
-/**
- * Marque un événement comme complété (ex: après présence terminée)
- */
+
 export async function completeEvent(eventId) {
   try {
     const result = await supabase

@@ -17,7 +17,7 @@
       class="mb-6"
     />
 
-    <Table
+    <DataTable
       :headers="['MATRICULE', 'GROUPE', 'NOM', 'PRÉNOM']"
       :columns="['matricule', 'group', 'nom', 'prénom']"
       :rows="students"
@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import Table from '@/components/Table.vue'
+import DataTable from '@/components/DataTable.vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { fetchStudentsForRoomPresence } from '@/services/studentService'
 import { supabase } from '@/supabase'
@@ -35,13 +35,13 @@ import AddForm from '@/components/AddForm.vue'
 
 export default {
   name: 'PresenceView',
-  
+
   components: {
-    Table,
-    Breadcrumb, 
+    DataTable,
+    Breadcrumb,
     AddForm
   },
-  
+
   data() {
   return {
     eventId: this.$route.params.eventId || this.$route.query.eventId,
@@ -60,21 +60,21 @@ export default {
     return parseInt(this.session)
   },
   breadcrumbItems() {
-    const ue = this.ue || '[UE inconnue]'
-    const sessionId = this.sessionId || '[session inconnue]'
-    const sessionCompoId = this.sessionCompoId || '[id manquant]'
-    const eventId = this.eventId || '[event manquant]'
+    const ue = this.ue
+    const sessionId = this.sessionId
+    const sessionCompoId = this.sessionCompoId
+    const eventId = this.eventId || ''
 
     return [
       { label: 'Accueil', link: '/' },
       { label: 'Sessions', link: '/sessions' },
       { label: 'Session', link: `/sessions/${sessionId}` },
-      { 
+      {
         label: 'UE',
         link: `/session-compo/${sessionCompoId}/events?ue=${ue}&session=${sessionId}`
       },
-      { 
-        label: 'Épreuve', 
+      {
+        label: 'Épreuve',
         link: `/event/${eventId}/rooms?ue=${ue}&session=${sessionId}&sessionCompoId=${sessionCompoId}`
       },
       { label: 'Local' }
@@ -82,7 +82,7 @@ export default {
   }
 },
 
-  
+
   methods: {
     async fetchSupervisor() {
       try {
@@ -100,7 +100,7 @@ export default {
         console.error('Erreur lors de la récupération du surveillant:', error)
       }
     },
-    
+
    async updateSupervisor() {
   let value = this.inputSupervisor.trim()
   if (!value) return
@@ -140,7 +140,7 @@ export default {
 },
 
 
-    
+
     async togglePresence(student) {
       try {
         student.present = !student.present
@@ -164,7 +164,7 @@ export default {
             student: student.matricule,
             examination_room: roomId
           })
-          
+
           if (insertResult.error) {
             console.error('Erreur ajout présence :', insertResult.error)
           }
@@ -183,7 +183,7 @@ export default {
         console.error('Erreur lors de la modification de présence:', error)
       }
     },
-    
+
     async loadInitialData() {
       try {
         const studentsResult = await fetchStudentsForRoomPresence(this.eventId, this.room, this.ue)
@@ -194,7 +194,7 @@ export default {
       }
     }
   },
-  
+
   mounted() {
   if (!this.eventId || !this.room || !this.ue || !this.sessionCompoId) {
     alert("Paramètres requis manquants. Redirection...");

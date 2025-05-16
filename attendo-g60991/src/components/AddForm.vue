@@ -3,7 +3,7 @@
 
     <div class="flex items-center space-x-2 flex-grow">
       <span v-if="icon" class="text-xl">{{ icon }}</span>
-      
+
       <slot>
         <input
           :value="modelValue"
@@ -14,8 +14,8 @@
         />
       </slot>
     </div>
-    
-  
+
+
     <button
       type="submit"
       class="bg-white text-black border border-black rounded px-4 py-1 hover:bg-gray-100 whitespace-nowrap"
@@ -28,9 +28,9 @@
 <script>
 export default {
   name: 'AddForm',
-  
+
   props: {
-    modelValue: {  
+    modelValue: {
       type: [String, Object],
       default: ''
     },
@@ -51,16 +51,16 @@ export default {
       default: 'Ajouter'
     }
   },
-  
-  emits: ['update:modelValue', 'submit'],  
-  
+
+  emits: ['update:modelValue', 'submit'],
+
   methods: {
     updateValue(value) {
-      this.$emit('update:modelValue', value); 
+      this.$emit('update:modelValue', value);
     },
-    
+
     onSubmit() {
-      this.$emit('submit', this.modelValue);  
+      this.$emit('submit', this.modelValue);
     }
   }
 }

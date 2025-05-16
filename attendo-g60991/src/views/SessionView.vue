@@ -7,7 +7,7 @@
     ]" />
 
     <h2 class="text-xl font-bold mb-4 mt-4 text-blue-800">Sessions</h2>
-    <Table
+    <DataTable
       :headers="['Sessions']"
       :rows="sessions"
       :columns="['label']"
@@ -28,28 +28,28 @@
 <script>
 import { fetchSessions, createSession } from '@/services/listSessionsService'
 import Breadcrumb from '@/components/Breadcrumb.vue'
-import Table from '@/components/Table.vue'
+import DataTable from '@/components/DataTable.vue'
 import AddForm from '@/components/AddForm.vue'
 
 export default {
   components: {
     Breadcrumb,
-    Table,
+    DataTable,
     AddForm
   },
-  
+
   data() {
     return {
       sessions: [],
       newSession: { label: '' }
     }
   },
-  
+
   methods: {
     goToSession(session) {
       this.$router.push(`/sessions/${session.id}`)
     },
-    
+
     async loadSessions() {
       try {
         const result = await fetchSessions()
@@ -58,26 +58,26 @@ export default {
         console.error('Erreur de chargement des sessions:', error)
       }
     },
-    
+
     async addSession() {
       const label = this.newSession.label.trim()
       if (!label) return
-      
+
       try {
         const result = await createSession({ label })
-        
+
         this.sessions = [...this.sessions, result]
-        
-        
+
+
         this.newSession.label = ''
-        
+
         console.log('Session ajoutée avec succès:', result)
       } catch (error) {
         console.error('Erreur lors de l\'ajout :', error)
       }
     }
   },
-  
+
   mounted() {
     this.loadSessions()
   }
