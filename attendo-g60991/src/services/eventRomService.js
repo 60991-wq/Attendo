@@ -8,7 +8,7 @@ export async function fetchUsedRooms(eventId) {
       .eq('event', eventId)
 
     if (result.error) throw result.error
-    
+
     return result.data
   } catch (error) {
 

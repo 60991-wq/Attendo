@@ -12,22 +12,10 @@
       Aucune UE n’a encore été ajoutée à cette session.
     </div>
 
-    <DataTable
-      :headers="['UE']"
-      :rows="sessionCompos"
-      :columns="['ue']"
-      textColor=""
-      :enableUnderline="false"
-      @row-click="goToEvent"
-      class="mb-8"
-    />
+    <DataTable :headers="['UE']" :rows="sessionCompos" :columns="['ue']" textColor="" :enableUnderline="false"
+      @row-click="goToEvent" class="mb-8" />
 
-    <AddForm
-      v-model="selectedUE"
-      submitLabel="Ajouter"
-      icon="📚"
-      @submit="addUE"
-    >
+    <AddForm v-model="selectedUE" submitLabel="Ajouter" icon="📚" @submit="addUE">
       <select v-model="selectedUE" class="border px-3 py-1 rounded w-full">
         <option value="" disabled>Choisissez une UE</option>
         <option v-for="ue in availableUEs" :key="ue.ue" :value="ue.ue">{{ ue.ue }}</option>
@@ -92,26 +80,26 @@ export default {
     },
 
     async loadSessionDetail() {
-  const id = this.sessionId
-  if (!id) {
-    console.warn('ID de session invalide, redirection...')
-    this.$router.push('/sessions')
-    return
-  }
+      const id = this.sessionId
+      if (!id) {
+        console.warn('ID de session invalide, redirection...')
+        this.$router.push('/sessions')
+        return
+      }
 
-  try {
-    const resultLabel = await fetchSessionLabel(id)
-    this.sessionLabel = resultLabel
+      try {
+        const resultLabel = await fetchSessionLabel(id)
+        this.sessionLabel = resultLabel
 
-    const resultCompos = await fetchSessionCompos(id)
-    this.sessionCompos = resultCompos
+        const resultCompos = await fetchSessionCompos(id)
+        this.sessionCompos = resultCompos
 
-    const resultUEs = await fetchAllUEs()
-    this.allUEs = resultUEs
-  } catch (error) {
-    console.error('Erreur lors du chargement de la session :', error)
-  }
-},
+        const resultUEs = await fetchAllUEs()
+        this.allUEs = resultUEs
+      } catch (error) {
+        console.error('Erreur lors du chargement de la session :', error)
+      }
+    },
     async addUE() {
       if (!this.selectedUE) return
 

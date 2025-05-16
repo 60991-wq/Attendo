@@ -9,7 +9,7 @@ export async function fetchStudentsForRoomPresence(eventId, roomLabel, ue) {
 
     if (result1.error) throw result1.error
     const allStudents = result1.data
-    
+
     if (!allStudents || allStudents.length === 0) return []
 
     const result2 = await supabase
@@ -21,7 +21,7 @@ export async function fetchStudentsForRoomPresence(eventId, roomLabel, ue) {
 
     if (result2.error) throw result2.error
     const examRoom = result2.data
-    
+
     if (!examRoom) return []
 
     const result3 = await supabase
@@ -41,7 +41,7 @@ export async function fetchStudentsForRoomPresence(eventId, roomLabel, ue) {
       prénom: s.student?.firstname || '',
       present: presentIds.includes(s.student_id)
     }))
-    
+
   } catch (error) {
     console.error("Erreur lors de la récupération des étudiants pour la présence:", error)
     throw error

@@ -1,6 +1,6 @@
 <template>
   <div class="w-full px-6 mt-0">
-       <Breadcrumb :items="breadcrumbItems" />
+    <Breadcrumb :items="breadcrumbItems" />
 
     <h2 class="text-xl font-bold mb-4 mt-4 text-blue-800">
       Liste des épreuves de
@@ -14,23 +14,15 @@
 
 
     <div v-if="events.length > 0" class="flex flex-wrap gap-4 mb-6">
-      <div
-        v-for="event in events"
-        :key="event.id"
+      <div v-for="event in events" :key="event.id"
         class="bg-gray-100 p-4 rounded shadow min-w-[150px] text-center font-semibold cursor-pointer hover:bg-gray-200"
-        @click="goToRooms(event)"
-      >
+        @click="goToRooms(event)">
         {{ event.label }}
       </div>
     </div>
 
-    <AddForm
-      v-model="newEventLabel"
-      icon="📝"
-      placeholder="bilan, projet, examen..."
-      submitLabel="Créer"
-      @submit="addEvent"
-    />
+    <AddForm v-model="newEventLabel" icon="📝" placeholder="bilan, projet, examen..." submitLabel="Créer"
+      @submit="addEvent" />
   </div>
 </template>
 
@@ -51,7 +43,7 @@ export default {
 
   data() {
     return {
-       sessionCompoId: this.$route.params.id || this.$route.query.sessionCompoId,
+      sessionCompoId: this.$route.params.id || this.$route.query.sessionCompoId,
       events: [],
       newEventLabel: '',
       sessionLabel: ''
@@ -89,7 +81,7 @@ export default {
 
     async loadEvents() {
       try {
-         this.events = await fetchEvents(this.sessionCompoId)
+        this.events = await fetchEvents(this.sessionCompoId)
       } catch (error) {
         console.error('Erreur chargement events :', error)
       }

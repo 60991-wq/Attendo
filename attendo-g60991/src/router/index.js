@@ -26,7 +26,7 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/sessions/:id', 
+      path: '/sessions/:id',
       name: 'sessionDetail',
       component: SessionDetailView,
       meta: { requiresAuth: true }

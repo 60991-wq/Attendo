@@ -6,9 +6,9 @@ export async function fetchSessions() {
       .from('session')
       .select('*')
       .order('id', { ascending: true })
-    
+
     if (result.error) throw result.error
-    
+
     return result.data
   } catch (error) {
 
@@ -22,9 +22,9 @@ export async function createSession(session) {
       .from('session')
       .insert([session])
       .select() // Ajouter cette ligne pour récupérer les données insérées
-    
+
     if (result.error) throw result.error
-    
+
     // Retourner le premier élément inséré (il n'y en a qu'un dans ce cas)
     return result.data[0]
   } catch (error) {

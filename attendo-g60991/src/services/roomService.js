@@ -5,9 +5,9 @@ import { supabase } from '@/supabase'
 export async function fetchAllRooms() {
   try {
     const result = await supabase.from('room').select('*')
-    
+
     if (result.error) throw result.error
-    
+
     return result.data
   } catch (error) {
     console.error("Erreur lors de la récupération de tous les locaux:", error)

@@ -1,28 +1,18 @@
 <template>
   <div class="w-full px-6 mt-0">
 
-  <Breadcrumb :items="breadcrumbItems" />
+    <Breadcrumb :items="breadcrumbItems" />
 
     <h2 class="text-xl font-bold mb-2">
       Prise de présence pour le local {{ room }}
       <span v-if="supervisor">par {{ supervisor.toUpperCase() }}</span>
     </h2>
 
-    <AddForm
-      v-model="inputSupervisor"
-      icon="🧑‍🏫"
-      placeholder="Nom ou acronyme"
-      submitLabel="Définir le surveillant"
-      @submit="updateSupervisor"
-      class="mb-6"
-    />
+    <AddForm v-model="inputSupervisor" icon="🧑‍🏫" placeholder="Nom ou acronyme" submitLabel="Définir le surveillant"
+      @submit="updateSupervisor" class="mb-6" />
 
-    <DataTable
-      :headers="['MATRICULE', 'GROUPE', 'NOM', 'PRÉNOM']"
-      :columns="['matricule', 'group', 'nom', 'prénom']"
-      :rows="students"
-      @row-click="togglePresence"
-    />
+    <DataTable :headers="['MATRICULE', 'GROUPE', 'NOM', 'PRÉNOM']" :columns="['matricule', 'group', 'nom', 'prénom']"
+      :rows="students" @row-click="togglePresence" />
   </div>
 </template>
 
@@ -43,44 +33,44 @@ export default {
   },
 
   data() {
-  return {
-    eventId: this.$route.params.eventId || this.$route.query.eventId,
-    ue: this.$route.query.ue,
-    room: this.$route.query.room,
-    session: this.$route.query.session,
-    sessionCompoId: this.$route.query.sessionCompoId || this.$route.params.sessionCompoId,
-    students: [],
-    supervisor: '',
-    inputSupervisor: ''
-  }
-},
+    return {
+      eventId: this.$route.params.eventId || this.$route.query.eventId,
+      ue: this.$route.query.ue,
+      room: this.$route.query.room,
+      session: this.$route.query.session,
+      sessionCompoId: this.$route.query.sessionCompoId || this.$route.params.sessionCompoId,
+      students: [],
+      supervisor: '',
+      inputSupervisor: ''
+    }
+  },
 
   computed: {
-  sessionId() {
-    return parseInt(this.session)
-  },
-  breadcrumbItems() {
-    const ue = this.ue
-    const sessionId = this.sessionId
-    const sessionCompoId = this.sessionCompoId
-    const eventId = this.eventId || ''
+    sessionId() {
+      return parseInt(this.session)
+    },
+    breadcrumbItems() {
+      const ue = this.ue
+      const sessionId = this.sessionId
+      const sessionCompoId = this.sessionCompoId
+      const eventId = this.eventId || ''
 
-    return [
-      { label: 'Accueil', link: '/' },
-      { label: 'Sessions', link: '/sessions' },
-      { label: 'Session', link: `/sessions/${sessionId}` },
-      {
-        label: 'UE',
-        link: `/session-compo/${sessionCompoId}/events?ue=${ue}&session=${sessionId}`
-      },
-      {
-        label: 'Épreuve',
-        link: `/event/${eventId}/rooms?ue=${ue}&session=${sessionId}&sessionCompoId=${sessionCompoId}`
-      },
-      { label: 'Local' }
-    ]
-  }
-},
+      return [
+        { label: 'Accueil', link: '/' },
+        { label: 'Sessions', link: '/sessions' },
+        { label: 'Session', link: `/sessions/${sessionId}` },
+        {
+          label: 'UE',
+          link: `/session-compo/${sessionCompoId}/events?ue=${ue}&session=${sessionId}`
+        },
+        {
+          label: 'Épreuve',
+          link: `/event/${eventId}/rooms?ue=${ue}&session=${sessionId}&sessionCompoId=${sessionCompoId}`
+        },
+        { label: 'Local' }
+      ]
+    }
+  },
 
 
   methods: {
@@ -101,43 +91,43 @@ export default {
       }
     },
 
-   async updateSupervisor() {
-  let value = this.inputSupervisor.trim()
-  if (!value) return
+    async updateSupervisor() {
+      let value = this.inputSupervisor.trim()
+      if (!value) return
 
-  try {
-    value = value.toUpperCase()
+      try {
+        value = value.toUpperCase()
 
-    const existingResult = await supabase
-      .from('examination_room')
-      .select('id')
-      .eq('event', this.eventId)
-      .eq('room', this.room)
-      .single()
+        const existingResult = await supabase
+          .from('examination_room')
+          .select('id')
+          .eq('event', this.eventId)
+          .eq('room', this.room)
+          .single()
 
-    if (existingResult.error) {
-      console.error('Erreur récupération examination_room :', existingResult.error)
-      return
-    }
+        if (existingResult.error) {
+          console.error('Erreur récupération examination_room :', existingResult.error)
+          return
+        }
 
-    if (existingResult.data) {
-      await supabase
-        .from('examination_room')
-        .update({ supervisor: value })
-        .eq('id', existingResult.data.id)
-    } else {
-      await supabase
-        .from('examination_room')
-        .insert({ event: this.eventId, room: this.room, supervisor: value })
-    }
+        if (existingResult.data) {
+          await supabase
+            .from('examination_room')
+            .update({ supervisor: value })
+            .eq('id', existingResult.data.id)
+        } else {
+          await supabase
+            .from('examination_room')
+            .insert({ event: this.eventId, room: this.room, supervisor: value })
+        }
 
-    this.inputSupervisor = ''
-    await this.fetchSupervisor()
+        this.inputSupervisor = ''
+        await this.fetchSupervisor()
 
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour du surveillant:', error)
-  }
-},
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du surveillant:', error)
+      }
+    },
 
 
 
@@ -196,14 +186,14 @@ export default {
   },
 
   mounted() {
-  if (!this.eventId || !this.room || !this.ue || !this.sessionCompoId) {
-    alert("Paramètres requis manquants. Redirection...");
-    this.$router.push("/sessions");
-    return;
-  }
+    if (!this.eventId || !this.room || !this.ue || !this.sessionCompoId) {
+      alert("Paramètres requis manquants. Redirection...");
+      this.$router.push("/sessions");
+      return;
+    }
 
-  this.loadInitialData();
-}
+    this.loadInitialData();
+  }
 
 }
 </script>

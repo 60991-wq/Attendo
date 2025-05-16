@@ -1,27 +1,16 @@
 <template>
   <div class="w-full px-6 mt-0">
 
-<Breadcrumb :items="[
+    <Breadcrumb :items="[
       { label: 'Accueil', link: '/' },
       { label: 'Sessions' }
     ]" />
 
     <h2 class="text-xl font-bold mb-4 mt-4 text-blue-800">Sessions</h2>
-    <DataTable
-      :headers="['Sessions']"
-      :rows="sessions"
-      :columns="['label']"
-      @row-click="goToSession"
-      class="mb-8"
-    />
+    <DataTable :headers="['Sessions']" :rows="sessions" :columns="['label']" @row-click="goToSession" class="mb-8" />
 
-    <AddForm
-      v-model="newSession.label"
-      icon="👥"
-      placeholder="Nouvelle session"
-      submitLabel="Ajouter"
-      @submit="addSession"
-    />
+    <AddForm v-model="newSession.label" icon="👥" placeholder="Nouvelle session" submitLabel="Ajouter"
+      @submit="addSession" />
   </div>
 </template>
 
